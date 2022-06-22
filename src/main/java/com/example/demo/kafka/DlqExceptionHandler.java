@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Map;
 
 @AllArgsConstructor
 public class DlqExceptionHandler implements DeserializationExceptionHandler, Closeable {
@@ -43,7 +42,7 @@ public class DlqExceptionHandler implements DeserializationExceptionHandler, Clo
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         logger.info("Closing dlq producer");
         producer.close();
     }

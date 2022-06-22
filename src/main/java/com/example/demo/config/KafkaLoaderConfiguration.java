@@ -2,7 +2,6 @@ package com.example.demo.config;
 
 import com.example.demo.kafka.DlqExceptionHandler;
 import com.example.demo.kafka.KafkaConsumerWithErrorHandling;
-import com.example.demo.kafka.LogAndContinueExceptionHandler;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +16,11 @@ public class KafkaLoaderConfiguration {
 
     @Bean
     public DlqExceptionHandler dlqExceptionHandler(KafkaConfig kafkaConfig) {
-        return new DlqExceptionHandler(new KafkaProducer<>(kafkaConfig.dlqProducerConfigs()),"demo-app-dlq");
+        return new DlqExceptionHandler(new KafkaProducer<>(kafkaConfig.dlqProducerConfigs()), "demo-app-dlq");
     }
 
     @Bean
-    public KafkaConsumerWithErrorHandling<?,?> createKafkaConsumerWithDLQ(KafkaConfig kafkaConfig, DlqExceptionHandler dlqExceptionHandler) {
+    public KafkaConsumerWithErrorHandling<?, ?> createKafkaConsumerWithDLQ(KafkaConfig kafkaConfig, DlqExceptionHandler dlqExceptionHandler) {
         return new KafkaConsumerWithErrorHandling<>(kafkaConfig.consumerConfigs(), dlqExceptionHandler);
     }
 

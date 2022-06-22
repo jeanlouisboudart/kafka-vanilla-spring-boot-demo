@@ -1,7 +1,6 @@
 package com.example.demo.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.Configurable;
 
 public interface DeserializationExceptionHandler {
     DeserializationHandlerResponse handle(final ConsumerRecord<byte[], byte[]> record,
