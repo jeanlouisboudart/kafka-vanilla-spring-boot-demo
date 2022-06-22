@@ -37,7 +37,7 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Closeable {
             this.keyDeserializer = Utils.newInstance(originalKeyDeserializer, Deserializer.class);
             this.keyDeserializer.configure(originalConfig, true);
             this.valueDeserializer = Utils.newInstance(originalValueDeserializer, Deserializer.class);
-            this.valueDeserializer.configure(originalConfig, true);
+            this.valueDeserializer.configure(originalConfig, false);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Cannot configure deserializer", e);
         }
