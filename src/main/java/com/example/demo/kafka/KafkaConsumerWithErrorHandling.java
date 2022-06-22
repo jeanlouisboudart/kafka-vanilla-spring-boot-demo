@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class KafkaConsumerWithErrorHandling<K, V> implements Closeable {
+public class KafkaConsumerWithErrorHandling<K, V> implements Consumer<K, V>, Closeable {
     private final Deserializer<K> keyDeserializer;
     private final Deserializer<V> valueDeserializer;
 
@@ -24,6 +24,7 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Closeable {
     @Delegate(excludes = MinimalExcludeConsumer.class)
     private final Consumer<byte[], byte[]> consumer;
 
+    @SuppressWarnings("unchecked")
     public KafkaConsumerWithErrorHandling(Map<String, Object> originalConfig, DeserializationExceptionHandler deserializationExceptionHandler) {
         this.deserializationExceptionHandler = deserializationExceptionHandler;
         Map<String, Object> config = new HashMap<>(originalConfig);
@@ -43,6 +44,7 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Closeable {
         }
     }
 
+    @Override
     public ConsumerRecords<K, V> poll(Duration timeout) {
         ConsumerRecords<byte[], byte[]> records = consumer.poll(timeout);
         Map<TopicPartition, List<ConsumerRecord<K, V>>> results = new HashMap<>();
@@ -87,8 +89,17 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Closeable {
         }
     }
 
+    //lombok quirks
+    @Override
+    @Deprecated
+    public ConsumerRecords<K, V> poll(long millis) {
+        throw new IllegalStateException("This method is deprecated");
+    }
+
     public interface MinimalExcludeConsumer<K, V> {
         ConsumerRecords<K, V> poll(Duration timeout);
+
+        ConsumerRecords<K, V> poll(long timeout);
     }
 
 }

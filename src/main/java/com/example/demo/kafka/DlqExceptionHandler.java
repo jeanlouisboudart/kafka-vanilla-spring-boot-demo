@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 @AllArgsConstructor
 public class DlqExceptionHandler implements DeserializationExceptionHandler, Closeable {
@@ -17,6 +16,7 @@ public class DlqExceptionHandler implements DeserializationExceptionHandler, Clo
 
     private final KafkaProducer<byte[], byte[]> producer;
     private final String dlqTopicName;
+    private final String appName;
 
     @Override
     public DeserializationHandlerResponse handle(ConsumerRecord<byte[], byte[]> record, Exception exception) {
