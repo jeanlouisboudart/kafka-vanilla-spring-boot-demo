@@ -23,8 +23,13 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
-    public DlqExceptionHandler dlqExceptionHandler(KafkaConfig kafkaConfig) {
-        return new DlqExceptionHandler(new KafkaProducer<>(kafkaConfig.dlqProducerConfigs()), kafkaConfig.getDlqName(), kafkaConfig.getAppName());
+    public DlqExceptionHandler dlqExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer) {
+        return new DlqExceptionHandler(dlqProducer, kafkaConfig.getDlqName(), kafkaConfig.getAppName());
+    }
+
+    @Bean
+    public KafkaProducer<byte[], byte[]> dlqProducer(KafkaConfig kafkaConfig) {
+        return new KafkaProducer<>(kafkaConfig.dlqProducerConfigs());
     }
 
     @Bean
