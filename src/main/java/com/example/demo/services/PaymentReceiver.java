@@ -40,6 +40,7 @@ public class PaymentReceiver {
     public void onShutdown() {
         logger.info("Committing Kafka Messages before shutdown");
         consumer.commitSync();
+        //consumer.close() not required here since Consumer interface extends Closeable, Spring will automatically close it.
     }
 
 }

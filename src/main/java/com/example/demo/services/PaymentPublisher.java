@@ -43,5 +43,6 @@ public class PaymentPublisher {
     public void onShutdown() {
         logger.info("Flushing remaining messages before shutdown");
         producer.flush();
+        //producer.close() not required here since Producer interface extends Closeable, Spring will automatically close it.
     }
 }
