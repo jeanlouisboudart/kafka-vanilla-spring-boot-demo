@@ -4,6 +4,7 @@ import lombok.experimental.Delegate;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.utils.Utils;
@@ -14,6 +15,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.example.demo.kafka.DlqUtils.DLQ_HEADER_MESSAGE_KEY;
+import static com.example.demo.kafka.DlqUtils.DLQ_HEADER_MESSAGE_VALUE;
 
 public class KafkaConsumerWithErrorHandling<K, V> implements Consumer<K, V>, Closeable {
     private final Deserializer<K> keyDeserializer;
@@ -62,8 +66,11 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Consumer<K, V>, Clo
 
     private ConsumerRecord<K, V> deserialize(ConsumerRecord<byte[], byte[]> record) {
         try {
-            K key = keyDeserializer.deserialize(record.topic(), record.headers(), record.key());
-            V value = valueDeserializer.deserialize(record.topic(), record.headers(), record.value());
+            Headers headers = record.headers();
+            K key = keyDeserializer.deserialize(record.topic(), headers, record.key());
+            V value = valueDeserializer.deserialize(record.topic(), headers, record.value());
+            DlqUtils.addHeader(headers, DLQ_HEADER_MESSAGE_KEY, record.key());
+            DlqUtils.addHeader(headers, DLQ_HEADER_MESSAGE_VALUE, record.value());
             return new ConsumerRecord<>(record.topic(),
                     record.partition(),
                     record.offset(),
@@ -73,10 +80,10 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Consumer<K, V>, Clo
                     record.serializedValueSize(),
                     key,
                     value,
-                    record.headers(),
+                    headers,
                     record.leaderEpoch());
         } catch (SerializationException e) {
-            DeserializationExceptionHandler.DeserializationHandlerResponse response = deserializationExceptionHandler.handle(record, e);
+            DeserializationExceptionHandler.DeserializationHandlerResponse response = deserializationExceptionHandler.handleDeserializationError(record, e);
             switch (response) {
                 case FAIL:
                     throw new SerializationException("Deserialization exception handler is set to fail upon  a deserialization error.", e);

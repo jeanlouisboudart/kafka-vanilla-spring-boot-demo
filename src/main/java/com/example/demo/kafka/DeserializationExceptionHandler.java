@@ -3,7 +3,11 @@ package com.example.demo.kafka;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public interface DeserializationExceptionHandler {
-    DeserializationHandlerResponse handle(final ConsumerRecord<byte[], byte[]> record,
+
+    <K, V> DeserializationHandlerResponse handleProcessingError(final ConsumerRecord<K, V> record,
+                                          final Exception exception);
+
+    DeserializationHandlerResponse handleDeserializationError(final ConsumerRecord<byte[], byte[]> record,
                                           final Exception exception);
 
 

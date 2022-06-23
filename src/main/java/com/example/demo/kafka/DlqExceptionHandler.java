@@ -11,41 +11,64 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.time.Instant;
 
+import static com.example.demo.kafka.DlqUtils.*;
+
 @AllArgsConstructor
 public class DlqExceptionHandler implements DeserializationExceptionHandler, Closeable {
     private final Logger logger = LoggerFactory.getLogger(DlqExceptionHandler.class);
-    private static  final String DLQ_HEADER_PREFIX = "dlq.error.";
-    private static  final String DLQ_HEADER_APP_NAME = DLQ_HEADER_PREFIX + "app.name";
-    private static  final String DLQ_HEADER_TIMESTAMP = DLQ_HEADER_PREFIX + "timestamp";
-    private static  final String DLQ_HEADER_TOPIC = DLQ_HEADER_PREFIX + "topic";
-    private static  final String DLQ_HEADER_PARTITION = DLQ_HEADER_PREFIX + "partition";
-    private static  final String DLQ_HEADER_OFFSET = DLQ_HEADER_PREFIX + "offset";
-    private static  final String DLQ_HEADER_EXCEPTION_CLASS = DLQ_HEADER_PREFIX + "exception.class.name";
-    private static  final String DLQ_HEADER_EXCEPTION_MESSAGE = DLQ_HEADER_PREFIX + "exception.message";
-
     private final KafkaProducer<byte[], byte[]> producer;
     private final String dlqTopicName;
     private final String appName;
 
     @Override
-    public DeserializationHandlerResponse handle(ConsumerRecord<byte[], byte[]> record, Exception exception) {
+    public <K, V> DeserializationHandlerResponse handleProcessingError(ConsumerRecord<K, V> record, Exception exception) {
+        logger.warn("Exception caught during Processing, topic: {}, partition: {}, offset: {}",
+                record.topic(),
+                record.partition(),
+                record.offset(),
+                exception);
+
+        //KafkaConsumerWithErrorHandling add the key & value in headers to preserve the original byte[]
+        Headers headers = record.headers();
+        byte[] key = headers.lastHeader(DLQ_HEADER_MESSAGE_KEY).value();
+        byte[] value = headers.lastHeader(DLQ_HEADER_MESSAGE_VALUE).value();
+        removeHeader(headers, DLQ_HEADER_MESSAGE_KEY);
+        removeHeader(headers, DLQ_HEADER_MESSAGE_VALUE);
+
+        sendToDlq(record, key, value, headers, exception);
+
+        return DeserializationHandlerResponse.CONTINUE;
+    }
+
+    @Override
+    public DeserializationHandlerResponse handleDeserializationError(ConsumerRecord<byte[], byte[]> record, Exception exception) {
         logger.warn("Exception caught during Deserialization, topic: {}, partition: {}, offset: {}",
                 record.topic(),
                 record.partition(),
                 record.offset(),
                 exception);
 
+        sendToDlq(record, record.key(), record.value(), record.headers(), exception);
+
+        return DeserializationHandlerResponse.CONTINUE;
+    }
+
+    private void sendToDlq(ConsumerRecord<?, ?> record, byte[] key, byte[] value, Headers headers, Exception exception) {
+        addHeader(headers, DLQ_HEADER_APP_NAME, appName);
+        addHeader(headers, DLQ_HEADER_TOPIC, record.topic());
+        addHeader(headers, DLQ_HEADER_PARTITION, record.partition());
+        addHeader(headers, DLQ_HEADER_OFFSET, record.offset());
+        addHeader(headers, DLQ_HEADER_TIMESTAMP, Instant.now().toString());
+        addHeader(headers, DLQ_HEADER_EXCEPTION_CLASS, exception.getClass().getCanonicalName());
+        addHeader(headers, DLQ_HEADER_EXCEPTION_MESSAGE, exception.getMessage());
+
+        removeHeader(headers, DLQ_HEADER_MESSAGE_KEY);
+        removeHeader(headers, DLQ_HEADER_MESSAGE_VALUE);
+
         try {
-            Headers headers = record.headers();
-            addHeader(headers, DLQ_HEADER_APP_NAME, appName);
-            addHeader(headers, DLQ_HEADER_TOPIC,record.topic());
-            addHeader(headers, DLQ_HEADER_PARTITION,record.partition());
-            addHeader(headers, DLQ_HEADER_OFFSET,record.offset());
-            addHeader(headers, DLQ_HEADER_TIMESTAMP, Instant.now().toString());
-            addHeader(headers, DLQ_HEADER_EXCEPTION_CLASS, exception.getClass().getCanonicalName());
-            addHeader(headers, DLQ_HEADER_EXCEPTION_MESSAGE, exception.getMessage());
+
             //Here we use synchronous send because we want to make sure we wrote to DLQ before moving forward.
-            producer.send(new ProducerRecord<>(dlqTopicName, null, record.timestamp(), record.key(), record.value(), headers)).get();
+            producer.send(new ProducerRecord<>(dlqTopicName, null, record.timestamp(), key, value, headers)).get();
         } catch (Exception e) {
             logger.error("Could not send to dlq, topic: {}, partition: {}, offset: {}",
                     record.topic(),
@@ -53,20 +76,6 @@ public class DlqExceptionHandler implements DeserializationExceptionHandler, Clo
                     record.offset(),
                     e);
         }
-
-        return DeserializationHandlerResponse.CONTINUE;
-    }
-
-    private void addHeader(Headers headers, String headerName, String value) {
-        headers.remove(headerName);
-        byte[] valueAsBytes = value != null ?  value.getBytes() : null;
-        headers.add(headerName, valueAsBytes);
-    }
-
-    private void addHeader(Headers headers, String headerName, Number value) {
-        headers.remove(headerName);
-        byte[] valueAsBytes = value != null ?  value.toString().getBytes() : null;
-        headers.add(headerName, valueAsBytes);
     }
 
     @Override
