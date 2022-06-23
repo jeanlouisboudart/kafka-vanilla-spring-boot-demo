@@ -1,6 +1,7 @@
 package com.example.demo.kafka;
 
 import lombok.experimental.Delegate;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.SerializationException;
@@ -67,8 +68,8 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Consumer<K, V>, Clo
     private ConsumerRecord<K, V> deserialize(ConsumerRecord<byte[], byte[]> record) {
         try {
             Headers headers = record.headers();
-            K key = keyDeserializer.deserialize(record.topic(), headers, record.key());
-            V value = valueDeserializer.deserialize(record.topic(), headers, record.value());
+            K key = ArrayUtils.isNotEmpty(record.key()) ? keyDeserializer.deserialize(record.topic(), headers, record.key()) : null;
+            V value = ArrayUtils.isNotEmpty(record.value()) ? valueDeserializer.deserialize(record.topic(), headers, record.value()) : null;
             DlqUtils.addHeader(headers, DLQ_HEADER_MESSAGE_KEY, record.key());
             DlqUtils.addHeader(headers, DLQ_HEADER_MESSAGE_VALUE, record.value());
             return new ConsumerRecord<>(record.topic(),
