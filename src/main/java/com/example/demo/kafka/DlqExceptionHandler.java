@@ -44,6 +44,7 @@ public class DlqExceptionHandler implements DeserializationExceptionHandler, Clo
             addHeader(headers, DLQ_HEADER_TIMESTAMP, Instant.now().toString());
             addHeader(headers, DLQ_HEADER_EXCEPTION_CLASS, exception.getClass().getCanonicalName());
             addHeader(headers, DLQ_HEADER_EXCEPTION_MESSAGE, exception.getMessage());
+            //Here we use synchronous send because we want to make sure we wrote to DLQ before moving forward.
             producer.send(new ProducerRecord<>(dlqTopicName, null, record.timestamp(), record.key(), record.value(), headers)).get();
         } catch (Exception e) {
             logger.error("Could not send to dlq, topic: {}, partition: {}, offset: {}",
