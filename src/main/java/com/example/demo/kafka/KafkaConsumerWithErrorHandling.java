@@ -23,14 +23,14 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Consumer<K, V>, Clo
     private final Deserializer<K> keyDeserializer;
     private final Deserializer<V> valueDeserializer;
 
-    private final DeserializationExceptionHandler deserializationExceptionHandler;
+    private final KafkaExceptionHandler kafkaExceptionHandler;
 
     @Delegate(excludes = MinimalExcludeConsumer.class)
     private final Consumer<byte[], byte[]> consumer;
 
     @SuppressWarnings("unchecked")
-    public KafkaConsumerWithErrorHandling(Map<String, Object> originalConfig, DeserializationExceptionHandler deserializationExceptionHandler) {
-        this.deserializationExceptionHandler = deserializationExceptionHandler;
+    public KafkaConsumerWithErrorHandling(Map<String, Object> originalConfig, KafkaExceptionHandler kafkaExceptionHandler) {
+        this.kafkaExceptionHandler = kafkaExceptionHandler;
         Map<String, Object> config = new HashMap<>(originalConfig);
         //rewrite deserializer
         String originalKeyDeserializer = (String) originalConfig.getOrDefault(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName());
@@ -83,7 +83,7 @@ public class KafkaConsumerWithErrorHandling<K, V> implements Consumer<K, V>, Clo
                     headers,
                     record.leaderEpoch());
         } catch (SerializationException e) {
-            DeserializationExceptionHandler.DeserializationHandlerResponse response = deserializationExceptionHandler.handleDeserializationError(record, e);
+            KafkaExceptionHandler.DeserializationHandlerResponse response = kafkaExceptionHandler.handleDeserializationError(record, e);
             switch (response) {
                 case FAIL:
                     throw new SerializationException("Deserialization exception handler is set to fail upon  a deserialization error.", e);

@@ -2,7 +2,7 @@ package com.example.demo.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-public interface DeserializationExceptionHandler {
+public interface KafkaExceptionHandler {
 
     <K, V> DeserializationHandlerResponse handleProcessingError(final ConsumerRecord<K, V> record,
                                           final Exception exception);

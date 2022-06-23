@@ -14,7 +14,7 @@ import java.time.Instant;
 import static com.example.demo.kafka.DlqUtils.*;
 
 @AllArgsConstructor
-public class DlqExceptionHandler implements DeserializationExceptionHandler, Closeable {
+public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
     private final Logger logger = LoggerFactory.getLogger(DlqExceptionHandler.class);
     private final KafkaProducer<byte[], byte[]> producer;
     private final String dlqTopicName;

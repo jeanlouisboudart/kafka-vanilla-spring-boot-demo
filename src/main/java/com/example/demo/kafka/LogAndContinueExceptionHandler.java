@@ -4,7 +4,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogAndContinueExceptionHandler implements DeserializationExceptionHandler {
+public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(LogAndContinueExceptionHandler.class);
 
     @Override
