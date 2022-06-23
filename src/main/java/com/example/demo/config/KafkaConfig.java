@@ -15,6 +15,8 @@ import java.util.Map;
 @Configuration
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaConfig {
+
+    private static final String DLQ_SUFFIX = "-dlq";
     @Setter
     private Map<String, Object> properties;
 
@@ -33,7 +35,7 @@ public class KafkaConfig {
     private String dlqName;
 
     public String getDlqName() {
-        return dlqName != null ? dlqName : appName + "-dlq";
+        return dlqName != null ? dlqName : appName + DLQ_SUFFIX;
     }
 
     public Map<String, Object> producerConfigs() {
@@ -54,7 +56,7 @@ public class KafkaConfig {
         Map<String, Object> dlqConfig = new HashMap<>(properties);
         dlqConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         dlqConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-        dlqConfig.put(ProducerConfig.CLIENT_ID_CONFIG, appName + dlqConfig);
+        dlqConfig.put(ProducerConfig.CLIENT_ID_CONFIG, appName + DLQ_SUFFIX);
         return dlqConfig;
     }
 
