@@ -10,4 +10,4 @@ kafka:
   consumer:
     "[key.deserializer]": "org.apache.kafka.common.serialization.StringDeserializer"
     "[value.deserializer]": "io.confluent.kafka.serializers.KafkaAvroDeserializer"
-    "[group.id]": "demo-kafka-native"
+    "[group.id]": "demo-kafka-vanilla"

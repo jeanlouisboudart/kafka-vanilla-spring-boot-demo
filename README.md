@@ -1,1 +1,1 @@
-# spring-kafka-native-demo
+# spring-kafka-vanilla-demo
