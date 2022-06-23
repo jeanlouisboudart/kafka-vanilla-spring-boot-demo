@@ -29,6 +29,13 @@ public class KafkaConfig {
     @Setter
     private String appName;
 
+    @Setter
+    private String dlqName;
+
+    public String getDlqName() {
+        return dlqName != null ? dlqName : appName + "-dlq";
+    }
+
     public Map<String, Object> producerConfigs() {
         Map<String, Object> producerProps = new HashMap<>(properties);
         producerProps.putIfAbsent(ProducerConfig.CLIENT_ID_CONFIG, appName);
