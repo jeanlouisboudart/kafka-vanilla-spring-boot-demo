@@ -21,39 +21,46 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
     private final String appName;
 
     @Override
-    public <K, V> DeserializationHandlerResponse handleProcessingError(ConsumerRecord<K, V> record, Exception exception) {
-        logger.warn("Exception caught during Processing, topic: {}, partition: {}, offset: {}",
+    public <K, V> DeserializationHandlerResponse handleProcessingError(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+        logger.warn("Exception caught during processing, topic: {}, partition: {}, offset: {}",
                 record.topic(),
                 record.partition(),
                 record.offset(),
                 exception);
-
-        //KafkaConsumerWithErrorHandling add the key & value in headers to preserve the original byte[]
-        Headers headers = record.headers();
-        byte[] key = headers.lastHeader(DLQ_HEADER_MESSAGE_KEY).value();
-        byte[] value = headers.lastHeader(DLQ_HEADER_MESSAGE_VALUE).value();
-        removeHeader(headers, DLQ_HEADER_MESSAGE_KEY);
-        removeHeader(headers, DLQ_HEADER_MESSAGE_VALUE);
-
-        sendToDlq(record, key, value, headers, exception);
-
-        return DeserializationHandlerResponse.CONTINUE;
+        sendToDlq(record, exception);
+        return DeserializationHandlerResponse.IGNORE;
     }
 
     @Override
-    public DeserializationHandlerResponse handleDeserializationError(ConsumerRecord<byte[], byte[]> record, Exception exception) {
-        logger.warn("Exception caught during Deserialization, topic: {}, partition: {}, offset: {}",
-                record.topic(),
-                record.partition(),
-                record.offset(),
-                exception);
+    public <K, V> DeserializationHandlerResponse handleDeserializationError(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record) {
+        if (record.key() != null && !record.key().valid()) {
+            logger.warn("Exception caught during Deserialization of the key, topic: {}, partition: {}, offset: {}",
+                    record.topic(),
+                    record.partition(),
+                    record.offset(),
+                    record.key().getException());
 
-        sendToDlq(record, record.key(), record.value(), record.headers(), exception);
+            sendToDlq(record, record.key().getException());
+            return DeserializationHandlerResponse.IGNORE;
+        }
 
-        return DeserializationHandlerResponse.CONTINUE;
+        if (record.value() != null && !record.value().valid()) {
+            logger.warn("Exception caught during Deserialization of the value, topic: {}, partition: {}, offset: {}",
+                    record.topic(),
+                    record.partition(),
+                    record.offset(),
+                    record.value().getException());
+
+            sendToDlq(record, record.value().getException());
+            return DeserializationHandlerResponse.IGNORE;
+        }
+
+
+        return DeserializationHandlerResponse.VALID;
     }
 
-    private void sendToDlq(ConsumerRecord<?, ?> record, byte[] key, byte[] value, Headers headers, Exception exception) {
+    private <K, V> void sendToDlq(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+        Headers headers = record.headers();
         addHeader(headers, DLQ_HEADER_APP_NAME, appName);
         addHeader(headers, DLQ_HEADER_TOPIC, record.topic());
         addHeader(headers, DLQ_HEADER_PARTITION, record.partition());
@@ -62,11 +69,10 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
         addHeader(headers, DLQ_HEADER_EXCEPTION_CLASS, exception.getClass().getCanonicalName());
         addHeader(headers, DLQ_HEADER_EXCEPTION_MESSAGE, exception.getMessage());
 
-        removeHeader(headers, DLQ_HEADER_MESSAGE_KEY);
-        removeHeader(headers, DLQ_HEADER_MESSAGE_VALUE);
-
         try {
 
+            byte[] key = record.key() != null ? record.key().getValueAsBytes() : null;
+            byte[] value = record.value() != null ? record.value().getValueAsBytes() : null;
             //Here we use synchronous send because we want to make sure we wrote to DLQ before moving forward.
             producer.send(new ProducerRecord<>(dlqTopicName, null, record.timestamp(), key, value, headers)).get();
         } catch (Exception e) {

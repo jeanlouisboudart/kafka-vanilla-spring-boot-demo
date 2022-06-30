@@ -1,12 +1,13 @@
 package com.example.demo.services;
 
-import com.example.demo.kafka.KafkaConsumerWithErrorHandling;
+import com.example.demo.kafka.DeserializerResult;
 import com.example.demo.kafka.KafkaExceptionHandler;
 import com.example.demo.models.PaymentDTO;
 import io.confluent.examples.clients.basicavro.Payment;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PaymentReceiver {
     private final Logger logger = LoggerFactory.getLogger(PaymentReceiver.class);
-    private final KafkaConsumerWithErrorHandling<String, Payment> consumer;
+    private final KafkaConsumer<DeserializerResult<String>, DeserializerResult<Payment>> consumer;
     private final KafkaExceptionHandler kafkaExceptionHandler;
 
     @PostConstruct
@@ -30,14 +31,16 @@ public class PaymentReceiver {
     }
 
     public List<PaymentDTO> read() {
-        ConsumerRecords<String, Payment> records = consumer.poll(Duration.ofMillis(200));
+        ConsumerRecords<DeserializerResult<String>, DeserializerResult<Payment>> records = consumer.poll(Duration.ofMillis(200));
         List<PaymentDTO> payments = new ArrayList<>();
-        for (ConsumerRecord<String, Payment> record : records) {
-            try {
-                payments.add(new PaymentDTO(record.value()));
-            } catch (Exception e) {
-                //conversion to DTO expect non null objects, What will happen if we receive a tombstone ?
-                kafkaExceptionHandler.handleProcessingError(record, e);
+        for (ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record : records) {
+            if (kafkaExceptionHandler.handleDeserializationError(record) == KafkaExceptionHandler.DeserializationHandlerResponse.VALID) {
+                try {
+                    payments.add(new PaymentDTO(record.value().getDeserializedValue()));
+                } catch (Exception e) {
+                    //conversion to DTO expect non-null objects, What will happen if we receive a tombstone ?
+                    kafkaExceptionHandler.handleProcessingError(record, e);
+                }
             }
         }
         return payments;

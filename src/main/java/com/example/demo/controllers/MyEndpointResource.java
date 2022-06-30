@@ -31,13 +31,13 @@ public class MyEndpointResource {
     }
 
     @GetMapping("/poison-pill")
-    public ResponseEntity<?> createPoisonPill(@RequestParam("message")String message) {
+    public ResponseEntity<?> createPoisonPill(@RequestParam("message") String message) {
         poisonPillProducer.send(new ProducerRecord<>(PaymentPublisher.TOPIC_NAME, message.getBytes()));
         return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/tombstone")
-    public ResponseEntity<?> createTombstone(@RequestParam("key")String key) {
+    public ResponseEntity<?> createTombstone(@RequestParam("key") String key) {
         poisonPillProducer.send(new ProducerRecord<>(PaymentPublisher.TOPIC_NAME, key.getBytes(), null));
         return ResponseEntity.badRequest().build();
     }

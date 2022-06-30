@@ -1,9 +1,11 @@
 package com.example.demo.config;
 
+import com.example.demo.kafka.ErrorWrapperDeserializer;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -49,6 +51,12 @@ public class KafkaConfig {
         Map<String, Object> consumerProps = new HashMap<>(properties);
         consumerProps.putIfAbsent(ConsumerConfig.CLIENT_ID_CONFIG, appName);
         consumerProps.putAll(consumer);
+        consumerProps.putIfAbsent(ErrorWrapperDeserializer.KEY_WRAPPER_DESERIALIZER_CLASS, consumerProps.getOrDefault(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName()));
+        consumerProps.putIfAbsent(ErrorWrapperDeserializer.VALUE_WRAPPER_DESERIALIZER_CLASS, consumerProps.getOrDefault(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName()));
+
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorWrapperDeserializer.class);
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorWrapperDeserializer.class);
+
         return consumerProps;
     }
 

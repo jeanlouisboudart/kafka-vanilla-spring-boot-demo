@@ -1,10 +1,11 @@
 package com.example.demo.config;
 
+import com.example.demo.kafka.DeserializerResult;
 import com.example.demo.kafka.DlqExceptionHandler;
-import com.example.demo.kafka.KafkaConsumerWithErrorHandling;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaClientMetrics;
 import lombok.AllArgsConstructor;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,8 +34,8 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
-    public KafkaConsumerWithErrorHandling<?, ?> createKafkaConsumerWithDLQ(KafkaConfig kafkaConfig, DlqExceptionHandler dlqExceptionHandler) {
-        KafkaConsumerWithErrorHandling<?, ?> consumer = new KafkaConsumerWithErrorHandling<>(kafkaConfig.consumerConfigs(), dlqExceptionHandler);
+    public KafkaConsumer<?, ?> createKafkaConsumerWithDLQ(KafkaConfig kafkaConfig) {
+        KafkaConsumer<DeserializerResult<?>, DeserializerResult<?>> consumer = new KafkaConsumer<>(kafkaConfig.consumerConfigs());
         new KafkaClientMetrics(consumer).bindTo(meterRegistry);
         return consumer;
     }

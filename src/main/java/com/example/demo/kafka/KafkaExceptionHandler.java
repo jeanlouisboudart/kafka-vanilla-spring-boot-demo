@@ -4,18 +4,18 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public interface KafkaExceptionHandler {
 
-    <K, V> DeserializationHandlerResponse handleProcessingError(final ConsumerRecord<K, V> record,
-                                          final Exception exception);
+    <K, V> DeserializationHandlerResponse handleProcessingError(final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
 
-    DeserializationHandlerResponse handleDeserializationError(final ConsumerRecord<byte[], byte[]> record,
-                                          final Exception exception);
+    <K, V> DeserializationHandlerResponse handleDeserializationError(final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record);
 
 
     enum DeserializationHandlerResponse {
         /* continue with processing */
-        CONTINUE(0, "CONTINUE"),
+        VALID(0, "VALID"),
+        /* continue with processing */
+        IGNORE(1, "IGNORE"),
         /* fail the processing and stop */
-        FAIL(1, "FAIL");
+        FAIL(-1, "FAIL");
 
         /**
          * an english description of the api--this is for debugging and can change
