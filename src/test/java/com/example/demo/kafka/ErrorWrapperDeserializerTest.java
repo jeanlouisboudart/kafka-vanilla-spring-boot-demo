@@ -3,11 +3,9 @@ package com.example.demo.kafka;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
