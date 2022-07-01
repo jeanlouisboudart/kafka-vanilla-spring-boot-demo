@@ -128,7 +128,7 @@ public class DlqExceptionHandlerTest {
                 TimestampType.LOG_APPEND_TIME,
                 0,
                 0,
-                new DeserializerResult<>(null, POISON_PILL_KEY.getBytes(), new SerializationException("BOOM")),
+                new DeserializerResult<>(POISON_PILL_KEY.getBytes(), new SerializationException("BOOM")),
                 new DeserializerResult<>(VALID_VALUE, VALID_VALUE.getBytes()),
                 new RecordHeaders(),
                 Optional.empty());
