@@ -2,7 +2,7 @@ package com.example.demo.kafka;
 
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Headers;
 import org.slf4j.Logger;
@@ -16,7 +16,7 @@ import static com.example.demo.kafka.DlqUtils.*;
 @AllArgsConstructor
 public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
     private final Logger logger = LoggerFactory.getLogger(DlqExceptionHandler.class);
-    private final KafkaProducer<byte[], byte[]> producer;
+    private final Producer<byte[], byte[]> producer;
     private final String dlqTopicName;
     private final String appName;
 

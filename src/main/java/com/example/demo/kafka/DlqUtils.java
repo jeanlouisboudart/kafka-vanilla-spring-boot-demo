@@ -33,4 +33,12 @@ public class DlqUtils {
         headers.remove(headerName);
     }
 
+    public static String getHeaderAsString(Headers headers, String headerName) {
+        return new String(headers.lastHeader(headerName).value());
+    }
+
+    public static Integer getHeaderAsInt(Headers headers, String headerName) {
+        return Integer.parseInt(getHeaderAsString(headers, headerName));
+    }
+
 }
