@@ -1,19 +1,15 @@
 package com.example.demo.kafka;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import static com.example.demo.kafka.KafkaExceptionHandler.DeserializationHandlerResponse.IGNORE;
-import static com.example.demo.kafka.KafkaExceptionHandler.DeserializationHandlerResponse.VALID;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest {
 
-    @Test
-    @Override
-    public void messageWithKeyAndValueIsValid() {
-        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = setupMessageWithKeyAndValueIsValid();
-        assertThat(handlerResponse).isEqualTo(VALID);
-    }
+    private final KafkaExceptionHandler.OnValidRecord onValidRecord = Mockito.mock(KafkaExceptionHandler.OnValidRecord.class);
+    private final KafkaExceptionHandler.OnSkippedRecord onSkippedRecord = Mockito.mock(KafkaExceptionHandler.OnSkippedRecord.class);
+    private final KafkaExceptionHandler.OnFatalError onFatalError = Mockito.mock(KafkaExceptionHandler.OnFatalError.class);
 
     public LogAndContinueExceptionHandlerTest() {
         setExceptionHandler(new LogAndContinueExceptionHandler());
@@ -22,37 +18,55 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
 
     @Test
     @Override
+    public void messageWithKeyAndValueIsValid() {
+        setupMessageWithKeyAndValueIsValid(onValidRecord, onSkippedRecord, onFatalError);
+        verify(onValidRecord).handle();
+        verify(onSkippedRecord, Mockito.never()).handle(Mockito.any());
+        verify(onFatalError, Mockito.never()).handle(Mockito.any());
+    }
+
+    @Test
+    @Override
     public void messageWithoutKeyIsValid() {
-        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = setupMessageWithoutKeyIsValid();
-        assertThat(handlerResponse).isEqualTo(VALID);
+        setupMessageWithoutKeyIsValid(onValidRecord, onSkippedRecord, onFatalError);
+        verify(onValidRecord).handle();
+        verify(onSkippedRecord, Mockito.never()).handle(Mockito.any());
+        verify(onFatalError, Mockito.never()).handle(Mockito.any());
     }
 
     @Test
     @Override
     public void tombstoneIsValid() {
-        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = setupTombstoneIsValid();
-        assertThat(handlerResponse).isEqualTo(VALID);
+        setupTombstoneIsValid(onValidRecord, onSkippedRecord, onFatalError);
+        verify(onValidRecord).handle();
+        verify(onSkippedRecord, Mockito.never()).handle(Mockito.any());
+        verify(onFatalError, Mockito.never()).handle(Mockito.any());
     }
 
     @Test
     @Override
     public void serializationErrorOnKey() {
-        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = setupSerializationErrorOnKey();
-        assertThat(handlerResponse).isEqualTo(IGNORE);
+        setupSerializationErrorOnKey(onValidRecord, onSkippedRecord, onFatalError);
+        verify(onValidRecord, Mockito.never()).handle();
+        verify(onSkippedRecord).handle(Mockito.any());
+        verify(onFatalError, Mockito.never()).handle(Mockito.any());
     }
 
 
     @Test
     @Override
     public void deserializationErrorOnValue() {
-        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = setupDeserializationErrorOnValue();
-        assertThat(handlerResponse).isEqualTo(IGNORE);
+        setupDeserializationErrorOnValue(onValidRecord, onSkippedRecord, onFatalError);
+        verify(onValidRecord, Mockito.never()).handle();
+        verify(onSkippedRecord).handle(Mockito.any());
+        verify(onFatalError, Mockito.never()).handle(Mockito.any());
     }
 
     @Test
     @Override
     public void processingError() {
-        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = setupProcessingError();
-        assertThat(handlerResponse).isEqualTo(IGNORE);
+        setupProcessingError(onSkippedRecord, onFatalError);
+        verify(onSkippedRecord).handle(Mockito.any());
+        verify(onFatalError, Mockito.never()).handle(Mockito.any());
     }
 }

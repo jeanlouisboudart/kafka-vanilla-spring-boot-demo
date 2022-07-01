@@ -1,10 +1,8 @@
 package com.example.demo.kafka;
 
-import com.google.common.base.Preconditions;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.utils.Utils;
 
-import javax.swing.text.html.Option;
 import java.util.Map;
 import java.util.Optional;
 

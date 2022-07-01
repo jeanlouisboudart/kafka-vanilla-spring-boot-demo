@@ -4,32 +4,46 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public interface KafkaExceptionHandler {
 
-    <K, V> DeserializationHandlerResponse handleProcessingError(final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
+    <K, V> void handleProcessingError(
+            final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
+            Exception exception,
+            OnSkippedRecord onSkippedRecord,
+            OnFatalError onFatalError);
 
-    <K, V> DeserializationHandlerResponse handleDeserializationError(final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record);
+    default <K, V> void handleProcessingError(
+            final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
+            Exception exception,
+            OnFatalError onFatalError) {
+        handleProcessingError(record, exception, (e) -> {
+        }, onFatalError);
+    }
 
+    <K, V> void handleDeserializationError(
+            final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
+            OnValidRecord onValidRecord,
+            OnSkippedRecord onSkippedRecord,
+            OnFatalError onFatalError);
 
-    enum DeserializationHandlerResponse {
-        /* continue with processing */
-        VALID(0, "VALID"),
-        /* continue with processing */
-        IGNORE(1, "IGNORE"),
-        /* fail the processing and stop */
-        FAIL(-1, "FAIL");
+    default <K, V> void handleDeserializationError(
+            final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
+            OnValidRecord onValidRecord,
+            OnFatalError onFatalError) {
+        handleDeserializationError(record, onValidRecord, (e) -> {
+        }, onFatalError);
+    }
 
-        /**
-         * an english description of the api--this is for debugging and can change
-         */
-        public final String name;
+    @FunctionalInterface
+    interface OnValidRecord {
+        void handle();
+    }
 
-        /**
-         * the permanent and immutable id of an API--this can't change ever
-         */
-        public final int id;
+    @FunctionalInterface
+    interface OnSkippedRecord {
+        void handle(Exception exception);
+    }
 
-        DeserializationHandlerResponse(final int id, final String name) {
-            this.id = id;
-            this.name = name;
-        }
+    @FunctionalInterface
+    interface OnFatalError {
+        void handle(Exception exception);
     }
 }
