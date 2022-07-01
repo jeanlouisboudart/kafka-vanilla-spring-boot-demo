@@ -45,6 +45,7 @@ public class ErrorWrapperDeserializer<T> implements Deserializer<DeserializerRes
                 throw new RuntimeException("Cannot configure deserializer", e);
             }
         }
+        innerDeserializer.configure(configs, isKey);
     }
 
     @Override
