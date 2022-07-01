@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -30,6 +31,24 @@ class ErrorWrapperDeserializerTest {
             final Map<String, Object> config = new HashMap<>();
             config.put(ErrorWrapperDeserializer.VALUE_WRAPPER_DESERIALIZER_CLASS, StringDeserializer.class.getCanonicalName());
             deserializer.configure(config, false);
+        }
+    }
+
+    @Test
+    void configureShouldFailWhenWrapperKeyIsNotConfigured() {
+        try (ErrorWrapperDeserializer<String> deserializer = new ErrorWrapperDeserializer<>()) {
+            final Map<String, Object> config = new HashMap<>();
+            IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> deserializer.configure(config, true));
+            assertThat(illegalStateException.getMessage()).contains(ErrorWrapperDeserializer.KEY_WRAPPER_DESERIALIZER_CLASS);
+        }
+    }
+
+    @Test
+    void configureShouldFailWhenWrapperValueIsNotConfigured() {
+        try (ErrorWrapperDeserializer<String> deserializer = new ErrorWrapperDeserializer<>()) {
+            final Map<String, Object> config = new HashMap<>();
+            IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> deserializer.configure(config, false));
+            assertThat(illegalStateException.getMessage()).contains(ErrorWrapperDeserializer.VALUE_WRAPPER_DESERIALIZER_CLASS);
         }
     }
 

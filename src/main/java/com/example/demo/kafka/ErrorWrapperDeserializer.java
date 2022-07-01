@@ -1,9 +1,12 @@
 package com.example.demo.kafka;
 
+import com.google.common.base.Preconditions;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.utils.Utils;
 
+import javax.swing.text.html.Option;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Deserializer wrapping another deserializer for error management
@@ -37,15 +40,16 @@ public class ErrorWrapperDeserializer<T> implements Deserializer<DeserializerRes
         if (innerDeserializer == null) {
             try {
                 if (isKey) {
-                    innerDeserializer = Utils.newInstance((String) configs.get(KEY_WRAPPER_DESERIALIZER_CLASS), Deserializer.class);
+                    Object deserializerClass = Optional.ofNullable(configs.get(KEY_WRAPPER_DESERIALIZER_CLASS)).orElseThrow(() -> new IllegalStateException(KEY_WRAPPER_DESERIALIZER_CLASS + " is not configured"));
+                    innerDeserializer = Utils.newInstance((String) deserializerClass, Deserializer.class);
                 } else {
-                    innerDeserializer = Utils.newInstance((String) configs.get(VALUE_WRAPPER_DESERIALIZER_CLASS), Deserializer.class);
+                    Object deserializerClass = Optional.ofNullable(configs.get(VALUE_WRAPPER_DESERIALIZER_CLASS)).orElseThrow(() -> new IllegalStateException(VALUE_WRAPPER_DESERIALIZER_CLASS + " is not configured"));
+                    innerDeserializer = Utils.newInstance((String) deserializerClass, Deserializer.class);
                 }
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Cannot configure deserializer", e);
             }
         }
-        innerDeserializer.configure(configs, isKey);
     }
 
     @Override
@@ -62,6 +66,8 @@ public class ErrorWrapperDeserializer<T> implements Deserializer<DeserializerRes
 
     @Override
     public void close() {
-        innerDeserializer.close();
+        if (innerDeserializer != null) {
+            innerDeserializer.close();
+        }
     }
 }
