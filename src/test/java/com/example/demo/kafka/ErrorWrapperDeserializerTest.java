@@ -14,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class ErrorWrapperDeserializerTest {
+public class ErrorWrapperDeserializerTest {
 
     @Test
-    void configureKey() {
+    public void configureKey() {
         try (ErrorWrapperDeserializer<String> deserializer = new ErrorWrapperDeserializer<>()) {
             final Map<String, Object> config = new HashMap<>();
             config.put(ErrorWrapperDeserializer.KEY_WRAPPER_DESERIALIZER_CLASS, StringDeserializer.class.getCanonicalName());
@@ -26,7 +26,7 @@ class ErrorWrapperDeserializerTest {
     }
 
     @Test
-    void configureValue() {
+    public void configureValue() {
         try (ErrorWrapperDeserializer<String> deserializer = new ErrorWrapperDeserializer<>()) {
             final Map<String, Object> config = new HashMap<>();
             config.put(ErrorWrapperDeserializer.VALUE_WRAPPER_DESERIALIZER_CLASS, StringDeserializer.class.getCanonicalName());
@@ -35,7 +35,7 @@ class ErrorWrapperDeserializerTest {
     }
 
     @Test
-    void configureShouldFailWhenWrapperKeyIsNotConfigured() {
+    public void configureShouldFailWhenWrapperKeyIsNotConfigured() {
         try (ErrorWrapperDeserializer<String> deserializer = new ErrorWrapperDeserializer<>()) {
             final Map<String, Object> config = new HashMap<>();
             IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> deserializer.configure(config, true));
@@ -44,7 +44,7 @@ class ErrorWrapperDeserializerTest {
     }
 
     @Test
-    void configureShouldFailWhenWrapperValueIsNotConfigured() {
+    public void configureShouldFailWhenWrapperValueIsNotConfigured() {
         try (ErrorWrapperDeserializer<String> deserializer = new ErrorWrapperDeserializer<>()) {
             final Map<String, Object> config = new HashMap<>();
             IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> deserializer.configure(config, false));
@@ -54,7 +54,7 @@ class ErrorWrapperDeserializerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void deserializeValidString() {
+    public void deserializeValidString() {
         final Deserializer<String> delegateDeserializer = mock(Deserializer.class);
         final String topic = "mytopic";
         final String input = "valid string";
@@ -75,7 +75,7 @@ class ErrorWrapperDeserializerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void deserializationError() {
+    public void deserializationError() {
         final Deserializer<String> delegateDeserializer = mock(Deserializer.class);
         final String topic = "mytopic";
         final byte[] inputAsBytes = String.valueOf(42).getBytes();
@@ -94,7 +94,7 @@ class ErrorWrapperDeserializerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void close() {
+    public void close() {
         final Deserializer<String> delegateDeserializer = mock(Deserializer.class);
         ErrorWrapperDeserializer<String> deserializer = new ErrorWrapperDeserializer<>(delegateDeserializer);
         deserializer.close();
