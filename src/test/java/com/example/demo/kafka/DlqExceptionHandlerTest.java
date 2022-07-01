@@ -8,6 +8,7 @@ import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -16,14 +17,17 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.example.demo.kafka.DlqUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DlqExceptionHandlerTest {
 
-    private MockConsumer<DeserializerResult<String>, DeserializerResult<String>> mockConsumer;
+    private final MockConsumer<DeserializerResult<String>, DeserializerResult<String>> mockConsumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
     private final MockProducer<byte[], byte[]> mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
     private final DlqExceptionHandler dlqExceptionHandler = new DlqExceptionHandler(mockProducer, DLQ_TOPIC, APP_NAME);
     private static final String TOPIC = "mytopic";
@@ -184,9 +188,36 @@ public class DlqExceptionHandlerTest {
         assertThat(producerRecord.value()).isEqualTo(POISON_PILL_VALUE.getBytes());
     }
 
+    @Test
+    void failToWriteToDLQ() {
+        ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
+                TOPIC,
+                0,
+                1,
+                Instant.now().toEpochMilli(),
+                TimestampType.LOG_APPEND_TIME,
+                0,
+                0,
+                new DeserializerResult<>(VALID_KEY, VALID_KEY.getBytes()),
+                new DeserializerResult<>(POISON_PILL_VALUE.getBytes(), new SerializationException("BOOM")),
+                new RecordHeaders(),
+                Optional.empty());
+
+        mockConsumer.addRecord(record);
+        ConsumerRecords<DeserializerResult<String>, DeserializerResult<String>> records = mockConsumer.poll(Duration.ofSeconds(1));
+
+        assertThat(records).isNotEmpty();
+        ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
+
+        mockProducer.sendException = new TimeoutException();
+        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = dlqExceptionHandler.handleDeserializationError(fetchedRecord);
+        assertThat(handlerResponse).isEqualTo(KafkaExceptionHandler.DeserializationHandlerResponse.IGNORE);
+        assertThat(mockProducer.history()).isEmpty();
+    }
+
+
     @BeforeEach
     public void setup() {
-        mockConsumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
         mockConsumer.subscribe(Collections.singleton(TOPIC));
         mockConsumer.rebalance(Collections.singleton(new TopicPartition(TOPIC, 0)));
 
@@ -194,6 +225,7 @@ public class DlqExceptionHandlerTest {
         beginningOffsets.put(new TopicPartition(TOPIC, 0), 0L);
         mockConsumer.updateBeginningOffsets(beginningOffsets);
 
+        mockProducer.clear();
     }
 
 }
