@@ -13,7 +13,7 @@ To start the environment simply run the following command
 ```
 docker-compose up -d
 ```
-This would start a local Kafka cluster (single node).
+This would start a local Kafka cluster (single node) and UI ([Confluent Control Center](https://docs.confluent.io/platform/current/control-center/index.html)).
 
 Once started you can run the application by running 
 ```
@@ -22,6 +22,8 @@ mvn spring-boot:run
 
 Once started you can access [swagger](http://localhost:8080/swagger-ui/index.html
 ) to publish / consume messages.
+
+You can also open the [Confluent Control Center](http://localhost:9021/) to explore the content of topics.
 
 ## Stopping the environment
 To stop the environment simply run the following command
