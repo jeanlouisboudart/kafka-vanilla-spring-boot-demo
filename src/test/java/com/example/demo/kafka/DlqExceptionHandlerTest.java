@@ -215,6 +215,41 @@ public class DlqExceptionHandlerTest {
         assertThat(mockProducer.history()).isEmpty();
     }
 
+    @Test
+    void processingError() {
+        ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
+                TOPIC,
+                0,
+                1,
+                Instant.now().toEpochMilli(),
+                TimestampType.LOG_APPEND_TIME,
+                0,
+                0,
+                new DeserializerResult<>(VALID_KEY, VALID_KEY.getBytes()),
+                new DeserializerResult<>(VALID_VALUE, VALID_VALUE.getBytes()),
+                new RecordHeaders(),
+                Optional.empty());
+
+        mockConsumer.addRecord(record);
+        ConsumerRecords<DeserializerResult<String>, DeserializerResult<String>> records = mockConsumer.poll(Duration.ofSeconds(1));
+
+        assertThat(records).isNotEmpty();
+        ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
+
+        KafkaExceptionHandler.DeserializationHandlerResponse handlerResponse = dlqExceptionHandler.handleProcessingError(fetchedRecord, new Exception("BOOM"));
+        assertThat(handlerResponse).isEqualTo(KafkaExceptionHandler.DeserializationHandlerResponse.IGNORE);
+        assertThat(mockProducer.history()).hasSize(1);
+        ProducerRecord<byte[], byte[]> producerRecord = mockProducer.history().iterator().next();
+        assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_APP_NAME)).isEqualTo(APP_NAME);
+        assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_TOPIC)).isEqualTo(TOPIC);
+        assertThat(getHeaderAsInt(producerRecord.headers(), DLQ_HEADER_PARTITION)).isEqualTo(0);
+        assertThat(getHeaderAsInt(producerRecord.headers(), DLQ_HEADER_OFFSET)).isEqualTo(1);
+        assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_CLASS)).isEqualTo(Exception.class.getCanonicalName());
+        assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_MESSAGE)).isEqualTo("BOOM");
+        assertThat(producerRecord.key()).isEqualTo(VALID_KEY.getBytes());
+        assertThat(producerRecord.value()).isEqualTo(VALID_VALUE.getBytes());
+    }
+
 
     @BeforeEach
     public void setup() {
