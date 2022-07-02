@@ -36,8 +36,7 @@ public class PaymentReceiver {
         for (ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record : records) {
             kafkaExceptionHandler.handleDeserializationError(
                     record,
-                    () -> onValidRecord(payments, record),
-                    this::onFatalError
+                    () -> onValidRecord(payments, record)
             );
 
         }
@@ -49,13 +48,9 @@ public class PaymentReceiver {
             payments.add(new PaymentDTO(record.value().getDeserializedValue()));
         } catch (Exception exception) {
             //conversion to DTO expect non-null objects, What will happen if we receive a tombstone ?
-            kafkaExceptionHandler.handleProcessingError(record, exception, this::onFatalError);
+            kafkaExceptionHandler.handleProcessingError(record, exception);
         }
 
-    }
-
-    private void onFatalError(Exception e) {
-        throw new RuntimeException(e);
     }
 
     @PreDestroy

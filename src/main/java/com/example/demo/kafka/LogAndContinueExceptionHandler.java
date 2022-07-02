@@ -7,6 +7,16 @@ import org.slf4j.LoggerFactory;
 public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(LogAndContinueExceptionHandler.class);
 
+    private final OnSkippedRecordListener defaultOnSkippedRecordListener;
+
+    public LogAndContinueExceptionHandler() {
+        defaultOnSkippedRecordListener = new NoOpOnSkippedRecordListener();
+    }
+
+    public LogAndContinueExceptionHandler(OnSkippedRecordListener onSkippedRecordListener) {
+        this.defaultOnSkippedRecordListener = onSkippedRecordListener;
+    }
+
     @Override
     public <K, V> void handleProcessingError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
@@ -18,7 +28,7 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                 record.partition(),
                 record.offset(),
                 exception);
-        onSkippedRecordListener.onSkippedRecordEvent(exception);
+        fireOnSkippedEvent(exception, onSkippedRecordListener);
     }
 
     @Override
@@ -33,7 +43,7 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.key().getException());
-            onSkippedRecordListener.onSkippedRecordEvent(record.key().getException());
+            fireOnSkippedEvent(record.key().getException(), onSkippedRecordListener);
             return;
         }
 
@@ -43,9 +53,17 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            onSkippedRecordListener.onSkippedRecordEvent(record.value().getException());
+            fireOnSkippedEvent(record.value().getException(), onSkippedRecordListener);
             return;
         }
         onValidRecordListener.onValidRecordEvent();
+    }
+
+    private void fireOnSkippedEvent(Exception exception, OnSkippedRecordListener onSkippedRecordListener) {
+        if (onSkippedRecordListener != null) {
+            onSkippedRecordListener.onSkippedRecordEvent(exception);
+        } else {
+            defaultOnSkippedRecordListener.onSkippedRecordEvent(exception);
+        }
     }
 }

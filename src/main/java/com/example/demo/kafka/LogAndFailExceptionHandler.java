@@ -7,6 +7,16 @@ import org.slf4j.LoggerFactory;
 public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(LogAndFailExceptionHandler.class);
 
+    private final OnFatalErrorListener defaultOnFatalErrorListener;
+
+    public LogAndFailExceptionHandler() {
+        this(new PropagateFatalErrorListener());
+    }
+
+    public LogAndFailExceptionHandler(OnFatalErrorListener onFatalErrorListener) {
+        this.defaultOnFatalErrorListener = onFatalErrorListener;
+    }
+
     @Override
     public <K, V> void handleProcessingError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
@@ -18,7 +28,7 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                 record.partition(),
                 record.offset(),
                 exception);
-        onFatalErrorListener.onFatalErrorEvent(exception);
+        fireOnFatalErrorEvent(exception, onFatalErrorListener);
     }
 
     @Override
@@ -33,7 +43,7 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.key().getException());
-            onFatalErrorListener.onFatalErrorEvent(record.key().getException());
+            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener);
             return;
         }
 
@@ -43,9 +53,17 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            onFatalErrorListener.onFatalErrorEvent(record.key().getException());
+            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener);
             return;
         }
         onValidRecordListener.onValidRecordEvent();
+    }
+
+    private void fireOnFatalErrorEvent(Exception exception, OnFatalErrorListener onFatalErrorListener) {
+        if (onFatalErrorListener != null) {
+            onFatalErrorListener.onFatalErrorEvent(exception);
+        } else {
+            defaultOnFatalErrorListener.onFatalErrorEvent(exception);
+        }
     }
 }

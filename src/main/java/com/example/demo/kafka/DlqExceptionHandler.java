@@ -19,17 +19,35 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
     private final String dlqTopicName;
     private final String appName;
     private final boolean failWhenErrorWritingToDlq;
+    private final OnSkippedRecordListener defaultOnSkippedRecordListener;
+    private final OnFatalErrorListener defaultOnFatalErrorListener;
+
 
     public DlqExceptionHandler(Producer<byte[], byte[]> producer, String dlqTopicName, String appName) {
         this(producer, dlqTopicName, appName, true);
     }
 
-    public DlqExceptionHandler(Producer<byte[], byte[]> producer, String dlqTopicName, String appName, boolean failWhenErrorWritingToDlq) {
+    public DlqExceptionHandler(Producer<byte[], byte[]> producer,
+                               String dlqTopicName,
+                               String appName,
+                               boolean failWhenErrorWritingToDlq) {
+        this(producer, dlqTopicName, appName, failWhenErrorWritingToDlq, new NoOpOnSkippedRecordListener(), new PropagateFatalErrorListener());
+    }
+
+    public DlqExceptionHandler(Producer<byte[], byte[]> producer,
+                               String dlqTopicName,
+                               String appName,
+                               boolean failWhenErrorWritingToDlq,
+                               OnSkippedRecordListener onSkippedRecordListener,
+                               OnFatalErrorListener onFatalErrorListener) {
         this.producer = producer;
         this.dlqTopicName = dlqTopicName;
         this.appName = appName;
         this.failWhenErrorWritingToDlq = failWhenErrorWritingToDlq;
+        this.defaultOnSkippedRecordListener = onSkippedRecordListener;
+        this.defaultOnFatalErrorListener = onFatalErrorListener;
     }
+
 
     @Override
     public <K, V> void handleProcessingError(
@@ -44,7 +62,7 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                 exception);
         try {
             sendToDlq(record, exception);
-            onSkippedRecordListener.onSkippedRecordEvent(exception);
+            fireOnSkippedEvent(exception, onSkippedRecordListener);
         } catch (Exception e) {
             errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener);
         }
@@ -65,7 +83,7 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
 
             try {
                 sendToDlq(record, record.key().getException());
-                onSkippedRecordListener.onSkippedRecordEvent(record.key().getException());
+                fireOnSkippedEvent(record.key().getException(), onSkippedRecordListener);
             } catch (Exception e) {
                 errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener);
             }
@@ -80,7 +98,7 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                     record.value().getException());
             try {
                 sendToDlq(record, record.value().getException());
-                onSkippedRecordListener.onSkippedRecordEvent(record.value().getException());
+                fireOnSkippedEvent(record.value().getException(), onSkippedRecordListener);
             } catch (Exception e) {
                 errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener);
             }
@@ -98,9 +116,9 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                 record.offset(),
                 e);
         if (failWhenErrorWritingToDlq) {
-            onFatalErrorListener.onFatalErrorEvent(e);
+            fireOnFatalErrorEvent(e, onFatalErrorListener);
         } else {
-            onSkippedRecordListener.onSkippedRecordEvent(e);
+            fireOnSkippedEvent(e, onSkippedRecordListener);
         }
     }
 
@@ -119,6 +137,22 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
         byte[] value = record.value() != null ? record.value().getValueAsBytes() : null;
         //Here we use synchronous send because we want to make sure we wrote to DLQ before moving forward.
         producer.send(new ProducerRecord<>(dlqTopicName, null, record.timestamp(), key, value, headers)).get();
+    }
+
+    private void fireOnSkippedEvent(Exception exception, OnSkippedRecordListener onSkippedRecordListener) {
+        if (onSkippedRecordListener != null) {
+            onSkippedRecordListener.onSkippedRecordEvent(exception);
+        } else {
+            defaultOnSkippedRecordListener.onSkippedRecordEvent(exception);
+        }
+    }
+
+    private void fireOnFatalErrorEvent(Exception exception, OnFatalErrorListener onFatalErrorListener) {
+        if (onFatalErrorListener != null) {
+            onFatalErrorListener.onFatalErrorEvent(exception);
+        } else {
+            defaultOnFatalErrorListener.onFatalErrorEvent(exception);
+        }
     }
 
     @Override

@@ -12,10 +12,8 @@ public interface KafkaExceptionHandler {
 
     default <K, V> void handleProcessingError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            Exception exception,
-            OnFatalErrorListener onFatalErrorListener) {
-        handleProcessingError(record, exception, (e) -> {
-        }, onFatalErrorListener);
+            Exception exception) {
+        handleProcessingError(record, exception, null, null);
     }
 
     <K, V> void handleDeserializationError(
@@ -26,10 +24,8 @@ public interface KafkaExceptionHandler {
 
     default <K, V> void handleDeserializationError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecordListener onValidRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
-        handleDeserializationError(record, onValidRecordListener, (e) -> {
-        }, onFatalErrorListener);
+            OnValidRecordListener onValidRecordListener) {
+        handleDeserializationError(record, onValidRecordListener, null, null);
     }
 
     @FunctionalInterface
@@ -47,4 +43,18 @@ public interface KafkaExceptionHandler {
         void onFatalErrorEvent(Exception exception);
     }
 
+    class NoOpOnSkippedRecordListener implements OnSkippedRecordListener {
+        @Override
+        public void onSkippedRecordEvent(Exception exception) {
+
+        }
+    }
+
+    class PropagateFatalErrorListener implements OnFatalErrorListener {
+
+        @Override
+        public void onFatalErrorEvent(Exception exception) {
+            throw new RuntimeException(exception);
+        }
+    }
 }
