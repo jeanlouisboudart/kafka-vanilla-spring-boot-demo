@@ -10,7 +10,7 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
     private final OnSkippedRecordListener defaultOnSkippedRecordListener;
 
     public LogAndContinueExceptionHandler() {
-        defaultOnSkippedRecordListener = new NoOpOnSkippedRecordListener();
+        this(new NoOpOnSkippedRecordListener());
     }
 
     public LogAndContinueExceptionHandler(OnSkippedRecordListener onSkippedRecordListener) {
