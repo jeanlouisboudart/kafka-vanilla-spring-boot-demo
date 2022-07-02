@@ -7,9 +7,9 @@ import static org.mockito.Mockito.verify;
 
 public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest {
 
-    private final KafkaExceptionHandler.OnValidRecord onValidRecord = Mockito.mock(KafkaExceptionHandler.OnValidRecord.class);
-    private final KafkaExceptionHandler.OnSkippedRecord onSkippedRecord = Mockito.mock(KafkaExceptionHandler.OnSkippedRecord.class);
-    private final KafkaExceptionHandler.OnFatalError onFatalError = Mockito.mock(KafkaExceptionHandler.OnFatalError.class);
+    private final KafkaExceptionHandler.OnValidRecordListener onValidRecordListener = Mockito.mock(KafkaExceptionHandler.OnValidRecordListener.class);
+    private final KafkaExceptionHandler.OnSkippedRecordListener onSkippedRecordListener = Mockito.mock(KafkaExceptionHandler.OnSkippedRecordListener.class);
+    private final KafkaExceptionHandler.OnFatalErrorListener onFatalErrorListener = Mockito.mock(KafkaExceptionHandler.OnFatalErrorListener.class);
 
     public LogAndContinueExceptionHandlerTest() {
         setExceptionHandler(new LogAndContinueExceptionHandler());
@@ -19,54 +19,54 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     @Test
     @Override
     public void messageWithKeyAndValueIsValid() {
-        setupMessageWithKeyAndValueIsValid(onValidRecord, onSkippedRecord, onFatalError);
-        verify(onValidRecord).handle();
-        verify(onSkippedRecord, Mockito.never()).handle(Mockito.any());
-        verify(onFatalError, Mockito.never()).handle(Mockito.any());
+        setupMessageWithKeyAndValueIsValid(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        verify(onValidRecordListener).onValidRecordEvent();
+        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
     }
 
     @Test
     @Override
     public void messageWithoutKeyIsValid() {
-        setupMessageWithoutKeyIsValid(onValidRecord, onSkippedRecord, onFatalError);
-        verify(onValidRecord).handle();
-        verify(onSkippedRecord, Mockito.never()).handle(Mockito.any());
-        verify(onFatalError, Mockito.never()).handle(Mockito.any());
+        setupMessageWithoutKeyIsValid(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        verify(onValidRecordListener).onValidRecordEvent();
+        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
     }
 
     @Test
     @Override
     public void tombstoneIsValid() {
-        setupTombstoneIsValid(onValidRecord, onSkippedRecord, onFatalError);
-        verify(onValidRecord).handle();
-        verify(onSkippedRecord, Mockito.never()).handle(Mockito.any());
-        verify(onFatalError, Mockito.never()).handle(Mockito.any());
+        setupTombstoneIsValid(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        verify(onValidRecordListener).onValidRecordEvent();
+        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
     }
 
     @Test
     @Override
     public void serializationErrorOnKey() {
-        setupSerializationErrorOnKey(onValidRecord, onSkippedRecord, onFatalError);
-        verify(onValidRecord, Mockito.never()).handle();
-        verify(onSkippedRecord).handle(Mockito.any());
-        verify(onFatalError, Mockito.never()).handle(Mockito.any());
+        setupSerializationErrorOnKey(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        verify(onValidRecordListener, Mockito.never()).onValidRecordEvent();
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
     }
 
 
     @Test
     @Override
     public void deserializationErrorOnValue() {
-        setupDeserializationErrorOnValue(onValidRecord, onSkippedRecord, onFatalError);
-        verify(onValidRecord, Mockito.never()).handle();
-        verify(onSkippedRecord).handle(Mockito.any());
-        verify(onFatalError, Mockito.never()).handle(Mockito.any());
+        setupDeserializationErrorOnValue(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        verify(onValidRecordListener, Mockito.never()).onValidRecordEvent();
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
     }
 
     @Test
     @Override
     public void processingError() {
-        setupProcessingError(onSkippedRecord, onFatalError);
-        verify(onSkippedRecord).handle(Mockito.any());
-        verify(onFatalError, Mockito.never()).handle(Mockito.any());
+        setupProcessingError(onSkippedRecordListener, onFatalErrorListener);
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
     }
 }

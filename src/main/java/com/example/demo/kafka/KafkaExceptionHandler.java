@@ -7,43 +7,44 @@ public interface KafkaExceptionHandler {
     <K, V> void handleProcessingError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
             Exception exception,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError);
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener);
 
     default <K, V> void handleProcessingError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
             Exception exception,
-            OnFatalError onFatalError) {
+            OnFatalErrorListener onFatalErrorListener) {
         handleProcessingError(record, exception, (e) -> {
-        }, onFatalError);
+        }, onFatalErrorListener);
     }
 
     <K, V> void handleDeserializationError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError);
+            OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener);
 
     default <K, V> void handleDeserializationError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecord onValidRecord,
-            OnFatalError onFatalError) {
-        handleDeserializationError(record, onValidRecord, (e) -> {
-        }, onFatalError);
+            OnValidRecordListener onValidRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
+        handleDeserializationError(record, onValidRecordListener, (e) -> {
+        }, onFatalErrorListener);
     }
 
     @FunctionalInterface
-    interface OnValidRecord {
-        void handle();
+    interface OnValidRecordListener {
+        void onValidRecordEvent();
     }
 
     @FunctionalInterface
-    interface OnSkippedRecord {
-        void handle(Exception exception);
+    interface OnSkippedRecordListener {
+        void onSkippedRecordEvent(Exception exception);
     }
 
     @FunctionalInterface
-    interface OnFatalError {
-        void handle(Exception exception);
+    interface OnFatalErrorListener {
+        void onFatalErrorEvent(Exception exception);
     }
+
 }

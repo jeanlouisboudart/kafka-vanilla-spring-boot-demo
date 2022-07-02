@@ -35,8 +35,8 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
     public <K, V> void handleProcessingError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
             Exception exception,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         logger.warn("Exception caught during processing, topic: {}, partition: {}, offset: {}",
                 record.topic(),
                 record.partition(),
@@ -44,18 +44,18 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                 exception);
         try {
             sendToDlq(record, exception);
-            onSkippedRecord.handle(exception);
+            onSkippedRecordListener.onSkippedRecordEvent(exception);
         } catch (Exception e) {
-            errorWhileWritingToDLQ(record, e, onSkippedRecord, onFatalError);
+            errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener);
         }
     }
 
     @Override
     public <K, V> void handleDeserializationError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         if (record.key() != null && !record.key().valid()) {
             logger.warn("Exception caught during Deserialization of the key, topic: {}, partition: {}, offset: {}",
                     record.topic(),
@@ -65,9 +65,9 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
 
             try {
                 sendToDlq(record, record.key().getException());
-                onSkippedRecord.handle(record.key().getException());
+                onSkippedRecordListener.onSkippedRecordEvent(record.key().getException());
             } catch (Exception e) {
-                errorWhileWritingToDLQ(record, e, onSkippedRecord, onFatalError);
+                errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener);
             }
             return;
         }
@@ -80,27 +80,27 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                     record.value().getException());
             try {
                 sendToDlq(record, record.value().getException());
-                onSkippedRecord.handle(record.value().getException());
+                onSkippedRecordListener.onSkippedRecordEvent(record.value().getException());
             } catch (Exception e) {
-                errorWhileWritingToDLQ(record, e, onSkippedRecord, onFatalError);
+                errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener);
             }
             return;
 
         }
 
-        onValidRecord.handle();
+        onValidRecordListener.onValidRecordEvent();
     }
 
-    private <K, V> void errorWhileWritingToDLQ(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception e, OnSkippedRecord onSkippedRecord, OnFatalError onFatalError) {
+    private <K, V> void errorWhileWritingToDLQ(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception e, OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
         logger.error("Could not send to dlq, topic: {}, partition: {}, offset: {}",
                 record.topic(),
                 record.partition(),
                 record.offset(),
                 e);
         if (failWhenErrorWritingToDlq) {
-            onFatalError.handle(e);
+            onFatalErrorListener.onFatalErrorEvent(e);
         } else {
-            onSkippedRecord.handle(e);
+            onSkippedRecordListener.onSkippedRecordEvent(e);
         }
     }
 

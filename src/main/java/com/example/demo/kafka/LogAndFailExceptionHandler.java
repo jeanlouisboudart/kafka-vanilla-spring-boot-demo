@@ -11,29 +11,29 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
     public <K, V> void handleProcessingError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
             Exception exception,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         logger.warn("Exception caught during processing, topic: {}, partition: {}, offset: {}",
                 record.topic(),
                 record.partition(),
                 record.offset(),
                 exception);
-        onFatalError.handle(exception);
+        onFatalErrorListener.onFatalErrorEvent(exception);
     }
 
     @Override
     public <K, V> void handleDeserializationError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         if (record.key() != null && !record.key().valid()) {
             logger.warn("Exception caught during Deserialization of the key, topic: {}, partition: {}, offset: {}",
                     record.topic(),
                     record.partition(),
                     record.offset(),
                     record.key().getException());
-            onFatalError.handle(record.key().getException());
+            onFatalErrorListener.onFatalErrorEvent(record.key().getException());
             return;
         }
 
@@ -43,9 +43,9 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            onFatalError.handle(record.key().getException());
+            onFatalErrorListener.onFatalErrorEvent(record.key().getException());
             return;
         }
-        onValidRecord.handle();
+        onValidRecordListener.onValidRecordEvent();
     }
 }

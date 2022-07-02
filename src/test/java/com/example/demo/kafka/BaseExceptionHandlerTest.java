@@ -1,7 +1,7 @@
 package com.example.demo.kafka;
 
-import com.example.demo.kafka.KafkaExceptionHandler.OnFatalError;
-import com.example.demo.kafka.KafkaExceptionHandler.OnSkippedRecord;
+import com.example.demo.kafka.KafkaExceptionHandler.OnFatalErrorListener;
+import com.example.demo.kafka.KafkaExceptionHandler.OnSkippedRecordListener;
 import lombok.Setter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -37,9 +37,9 @@ public abstract class BaseExceptionHandlerTest {
     public abstract void messageWithKeyAndValueIsValid();
 
     protected void setupMessageWithKeyAndValueIsValid(
-            KafkaExceptionHandler.OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
 
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
@@ -61,15 +61,15 @@ public abstract class BaseExceptionHandlerTest {
 
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
-        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecord, onSkippedRecord, onFatalError);
+        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
     }
 
     public abstract void messageWithoutKeyIsValid();
 
     protected void setupMessageWithoutKeyIsValid(
-            KafkaExceptionHandler.OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -89,15 +89,15 @@ public abstract class BaseExceptionHandlerTest {
         assertThat(records).isNotEmpty();
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
-        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecord, onSkippedRecord, onFatalError);
+        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
     }
 
     public abstract void tombstoneIsValid();
 
     protected void setupTombstoneIsValid(
-            KafkaExceptionHandler.OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -117,15 +117,15 @@ public abstract class BaseExceptionHandlerTest {
         assertThat(records).isNotEmpty();
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
-        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecord, onSkippedRecord, onFatalError);
+        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
     }
 
     public abstract void serializationErrorOnKey();
 
     protected void setupSerializationErrorOnKey(
-            KafkaExceptionHandler.OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -145,15 +145,15 @@ public abstract class BaseExceptionHandlerTest {
         assertThat(records).isNotEmpty();
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
-        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecord, onSkippedRecord, onFatalError);
+        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
     }
 
     public abstract void deserializationErrorOnValue();
 
     protected void setupDeserializationErrorOnValue(
-            KafkaExceptionHandler.OnValidRecord onValidRecord,
-            OnSkippedRecord onSkippedRecord,
-            OnFatalError onFatalError) {
+            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
+            OnSkippedRecordListener onSkippedRecordListener,
+            OnFatalErrorListener onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -173,12 +173,12 @@ public abstract class BaseExceptionHandlerTest {
         assertThat(records).isNotEmpty();
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
-        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecord, onSkippedRecord, onFatalError);
+        exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
     }
 
     public abstract void processingError();
 
-    protected void setupProcessingError(OnSkippedRecord onSkippedRecord, OnFatalError onFatalError) {
+    protected void setupProcessingError(OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -198,7 +198,7 @@ public abstract class BaseExceptionHandlerTest {
         assertThat(records).isNotEmpty();
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
-        exceptionHandler.handleProcessingError(fetchedRecord, new Exception("BOOM"), onSkippedRecord, onFatalError);
+        exceptionHandler.handleProcessingError(fetchedRecord, new Exception("BOOM"), onSkippedRecordListener, onFatalErrorListener);
     }
 
     @BeforeEach
