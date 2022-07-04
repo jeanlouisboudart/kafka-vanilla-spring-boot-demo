@@ -28,7 +28,7 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                 record.partition(),
                 record.offset(),
                 exception);
-        fireOnFatalErrorEvent(exception, onFatalErrorListener);
+        fireOnFatalErrorEvent(exception, onFatalErrorListener, ErrorType.PROCESSING_ERROR);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.key().getException());
-            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener);
+            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener, ErrorType.DESERIALIZATION_ERROR);
             return;
         }
 
@@ -53,17 +53,17 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener);
+            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener, ErrorType.DESERIALIZATION_ERROR);
             return;
         }
         onValidRecordListener.onValidRecordEvent();
     }
 
-    private void fireOnFatalErrorEvent(Exception exception, OnFatalErrorListener onFatalErrorListener) {
+    private void fireOnFatalErrorEvent(Exception exception, OnFatalErrorListener onFatalErrorListener, ErrorType errorType) {
         if (onFatalErrorListener != null) {
-            onFatalErrorListener.onFatalErrorEvent(exception);
+            onFatalErrorListener.onFatalErrorEvent(exception, errorType);
         } else {
-            defaultOnFatalErrorListener.onFatalErrorEvent(exception);
+            defaultOnFatalErrorListener.onFatalErrorEvent(exception, errorType);
         }
     }
 }

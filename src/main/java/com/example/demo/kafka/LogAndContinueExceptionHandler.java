@@ -28,7 +28,7 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                 record.partition(),
                 record.offset(),
                 exception);
-        fireOnSkippedEvent(exception, onSkippedRecordListener);
+        fireOnSkippedEvent(exception, onSkippedRecordListener, ErrorType.PROCESSING_ERROR);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.key().getException());
-            fireOnSkippedEvent(record.key().getException(), onSkippedRecordListener);
+            fireOnSkippedEvent(record.key().getException(), onSkippedRecordListener, ErrorType.DESERIALIZATION_ERROR);
             return;
         }
 
@@ -53,17 +53,17 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            fireOnSkippedEvent(record.value().getException(), onSkippedRecordListener);
+            fireOnSkippedEvent(record.value().getException(), onSkippedRecordListener, ErrorType.DESERIALIZATION_ERROR);
             return;
         }
         onValidRecordListener.onValidRecordEvent();
     }
 
-    private void fireOnSkippedEvent(Exception exception, OnSkippedRecordListener onSkippedRecordListener) {
+    private void fireOnSkippedEvent(Exception exception, OnSkippedRecordListener onSkippedRecordListener, ErrorType errorType) {
         if (onSkippedRecordListener != null) {
-            onSkippedRecordListener.onSkippedRecordEvent(exception);
+            onSkippedRecordListener.onSkippedRecordEvent(exception, errorType);
         } else {
-            defaultOnSkippedRecordListener.onSkippedRecordEvent(exception);
+            defaultOnSkippedRecordListener.onSkippedRecordEvent(exception, errorType);
         }
     }
 }

@@ -21,8 +21,8 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     public void messageWithKeyAndValueIsValid() {
         setupMessageWithKeyAndValueIsValid(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener).onValidRecordEvent();
-        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any());
-        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
+        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any(), Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -30,8 +30,8 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     public void messageWithoutKeyIsValid() {
         setupMessageWithoutKeyIsValid(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener).onValidRecordEvent();
-        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any());
-        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
+        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any(), Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -39,8 +39,8 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     public void tombstoneIsValid() {
         setupTombstoneIsValid(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener).onValidRecordEvent();
-        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any());
-        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
+        verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any(), Mockito.any());
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -48,8 +48,8 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     public void serializationErrorOnKey() {
         setupSerializationErrorOnKey(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener, Mockito.never()).onValidRecordEvent();
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any());
-        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any(), Mockito.eq(KafkaExceptionHandler.ErrorType.DESERIALIZATION_ERROR));
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any());
     }
 
 
@@ -58,15 +58,15 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     public void deserializationErrorOnValue() {
         setupDeserializationErrorOnValue(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener, Mockito.never()).onValidRecordEvent();
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any());
-        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any(), Mockito.eq(KafkaExceptionHandler.ErrorType.DESERIALIZATION_ERROR));
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any());
     }
 
     @Test
     @Override
     public void processingError() {
         setupProcessingError(onSkippedRecordListener, onFatalErrorListener);
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any());
-        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.any(), Mockito.eq(KafkaExceptionHandler.ErrorType.PROCESSING_ERROR));
+        verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any());
     }
 }

@@ -35,17 +35,17 @@ public interface KafkaExceptionHandler {
 
     @FunctionalInterface
     interface OnSkippedRecordListener {
-        void onSkippedRecordEvent(Exception exception);
+        void onSkippedRecordEvent(Exception exception, ErrorType errorType);
     }
 
     @FunctionalInterface
     interface OnFatalErrorListener {
-        void onFatalErrorEvent(Exception exception);
+        void onFatalErrorEvent(Exception exception, ErrorType errorType);
     }
 
     class NoOpOnSkippedRecordListener implements OnSkippedRecordListener {
         @Override
-        public void onSkippedRecordEvent(Exception exception) {
+        public void onSkippedRecordEvent(Exception exception, ErrorType errorType) {
 
         }
     }
@@ -53,8 +53,13 @@ public interface KafkaExceptionHandler {
     class PropagateFatalErrorListener implements OnFatalErrorListener {
 
         @Override
-        public void onFatalErrorEvent(Exception exception) {
+        public void onFatalErrorEvent(Exception exception, ErrorType errorType) {
             throw new RuntimeException(exception);
         }
+    }
+
+    enum ErrorType {
+        DESERIALIZATION_ERROR,
+        PROCESSING_ERROR
     }
 }
