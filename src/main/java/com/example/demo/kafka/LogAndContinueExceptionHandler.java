@@ -28,7 +28,7 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                 record.partition(),
                 record.offset(),
                 exception);
-        fireOnSkippedEvent(exception, onSkippedRecordListener, ErrorType.PROCESSING_ERROR);
+        fireOnSkippedEvent(ErrorType.PROCESSING_ERROR, record, exception, onSkippedRecordListener);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.key().getException());
-            fireOnSkippedEvent(record.key().getException(), onSkippedRecordListener, ErrorType.DESERIALIZATION_ERROR);
+            fireOnSkippedEvent(ErrorType.DESERIALIZATION_ERROR, record, record.key().getException(), onSkippedRecordListener);
             return;
         }
 
@@ -53,17 +53,17 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            fireOnSkippedEvent(record.value().getException(), onSkippedRecordListener, ErrorType.DESERIALIZATION_ERROR);
+            fireOnSkippedEvent(ErrorType.DESERIALIZATION_ERROR, record, record.value().getException(), onSkippedRecordListener);
             return;
         }
         onValidRecordListener.onValidRecordEvent();
     }
 
-    private void fireOnSkippedEvent(Exception exception, OnSkippedRecordListener onSkippedRecordListener, ErrorType errorType) {
+    private <K, V> void fireOnSkippedEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception, OnSkippedRecordListener onSkippedRecordListener) {
         if (onSkippedRecordListener != null) {
-            onSkippedRecordListener.onSkippedRecordEvent(exception, errorType);
+            onSkippedRecordListener.onSkippedRecordEvent(errorType, record, exception);
         } else {
-            defaultOnSkippedRecordListener.onSkippedRecordEvent(exception, errorType);
+            defaultOnSkippedRecordListener.onSkippedRecordEvent(errorType, record, exception);
         }
     }
 }

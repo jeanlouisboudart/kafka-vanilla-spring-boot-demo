@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.time.Instant;
-import java.util.concurrent.ExecutionException;
 
 import static com.example.demo.kafka.DlqUtils.*;
 
@@ -60,12 +59,8 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                 record.partition(),
                 record.offset(),
                 exception);
-        try {
-            sendToDlq(record, exception);
-            fireOnSkippedEvent(exception, onSkippedRecordListener, ErrorType.PROCESSING_ERROR);
-        } catch (Exception e) {
-            errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener, ErrorType.PROCESSING_ERROR);
-        }
+        sendToDlq(ErrorType.PROCESSING_ERROR, record, exception, onSkippedRecordListener, onFatalErrorListener);
+
     }
 
     @Override
@@ -81,12 +76,7 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                     record.offset(),
                     record.key().getException());
 
-            try {
-                sendToDlq(record, record.key().getException());
-                fireOnSkippedEvent(record.key().getException(), onSkippedRecordListener, ErrorType.DESERIALIZATION_ERROR);
-            } catch (Exception e) {
-                errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener, ErrorType.DESERIALIZATION_ERROR);
-            }
+            sendToDlq(ErrorType.DESERIALIZATION_ERROR, record, record.key().getException(), onSkippedRecordListener, onFatalErrorListener);
             return;
         }
 
@@ -96,12 +86,7 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            try {
-                sendToDlq(record, record.value().getException());
-                fireOnSkippedEvent(record.value().getException(), onSkippedRecordListener, ErrorType.DESERIALIZATION_ERROR);
-            } catch (Exception e) {
-                errorWhileWritingToDLQ(record, e, onSkippedRecordListener, onFatalErrorListener, ErrorType.DESERIALIZATION_ERROR);
-            }
+            sendToDlq(ErrorType.DESERIALIZATION_ERROR, record, record.value().getException(), onSkippedRecordListener, onFatalErrorListener);
             return;
 
         }
@@ -109,20 +94,20 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
         onValidRecordListener.onValidRecordEvent();
     }
 
-    private <K, V> void errorWhileWritingToDLQ(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception e, OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener, ErrorType errorType) {
+    private <K, V> void errorWhileWritingToDLQ(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception e, OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
         logger.error("Could not send to dlq, topic: {}, partition: {}, offset: {}",
                 record.topic(),
                 record.partition(),
                 record.offset(),
                 e);
         if (failWhenErrorWritingToDlq) {
-            fireOnFatalErrorEvent(e, onFatalErrorListener, errorType);
+            fireOnFatalErrorEvent(errorType, record, e, onFatalErrorListener);
         } else {
-            fireOnSkippedEvent(e, onSkippedRecordListener, errorType);
+            fireOnSkippedEvent(errorType, record, e, onSkippedRecordListener);
         }
     }
 
-    private <K, V> void sendToDlq(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) throws ExecutionException, InterruptedException {
+    private <K, V> void sendToDlq(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception, OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
         Headers headers = record.headers();
         addHeader(headers, DLQ_HEADER_APP_NAME, appName);
         addHeader(headers, DLQ_HEADER_TOPIC, record.topic());
@@ -136,22 +121,27 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
         byte[] key = record.key() != null ? record.key().getValueAsBytes() : null;
         byte[] value = record.value() != null ? record.value().getValueAsBytes() : null;
         //Here we use synchronous send because we want to make sure we wrote to DLQ before moving forward.
-        producer.send(new ProducerRecord<>(dlqTopicName, null, record.timestamp(), key, value, headers)).get();
-    }
-
-    private void fireOnSkippedEvent(Exception exception, OnSkippedRecordListener onSkippedRecordListener, ErrorType errorType) {
-        if (onSkippedRecordListener != null) {
-            onSkippedRecordListener.onSkippedRecordEvent(exception, errorType);
-        } else {
-            defaultOnSkippedRecordListener.onSkippedRecordEvent(exception, errorType);
+        try {
+            producer.send(new ProducerRecord<>(dlqTopicName, null, record.timestamp(), key, value, headers)).get();
+            fireOnSkippedEvent(errorType, record, exception, onSkippedRecordListener);
+        } catch (Exception e) {
+            errorWhileWritingToDLQ(errorType, record, e, onSkippedRecordListener, onFatalErrorListener);
         }
     }
 
-    private void fireOnFatalErrorEvent(Exception exception, OnFatalErrorListener onFatalErrorListener, ErrorType errorType) {
-        if (onFatalErrorListener != null) {
-            onFatalErrorListener.onFatalErrorEvent(exception, errorType);
+    private <K, V> void fireOnSkippedEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception, OnSkippedRecordListener onSkippedRecordListener) {
+        if (onSkippedRecordListener != null) {
+            onSkippedRecordListener.onSkippedRecordEvent(errorType, record, exception);
         } else {
-            defaultOnFatalErrorListener.onFatalErrorEvent(exception, errorType);
+            defaultOnSkippedRecordListener.onSkippedRecordEvent(errorType, record, exception);
+        }
+    }
+
+    private <K, V> void fireOnFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception, OnFatalErrorListener onFatalErrorListener) {
+        if (onFatalErrorListener != null) {
+            onFatalErrorListener.onFatalErrorEvent(errorType, record, exception);
+        } else {
+            defaultOnFatalErrorListener.onFatalErrorEvent(errorType, record, exception);
         }
     }
 

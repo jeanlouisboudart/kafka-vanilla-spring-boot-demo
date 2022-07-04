@@ -28,7 +28,7 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                 record.partition(),
                 record.offset(),
                 exception);
-        fireOnFatalErrorEvent(exception, onFatalErrorListener, ErrorType.PROCESSING_ERROR);
+        fireOnFatalErrorEvent(ErrorType.PROCESSING_ERROR, record, exception, onFatalErrorListener);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.key().getException());
-            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener, ErrorType.DESERIALIZATION_ERROR);
+            fireOnFatalErrorEvent(ErrorType.DESERIALIZATION_ERROR, record, record.key().getException(), onFatalErrorListener);
             return;
         }
 
@@ -53,17 +53,17 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
                     record.partition(),
                     record.offset(),
                     record.value().getException());
-            fireOnFatalErrorEvent(record.key().getException(), onFatalErrorListener, ErrorType.DESERIALIZATION_ERROR);
+            fireOnFatalErrorEvent(ErrorType.DESERIALIZATION_ERROR, record, record.key().getException(), onFatalErrorListener);
             return;
         }
         onValidRecordListener.onValidRecordEvent();
     }
 
-    private void fireOnFatalErrorEvent(Exception exception, OnFatalErrorListener onFatalErrorListener, ErrorType errorType) {
+    private <K, V> void fireOnFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception, OnFatalErrorListener onFatalErrorListener) {
         if (onFatalErrorListener != null) {
-            onFatalErrorListener.onFatalErrorEvent(exception, errorType);
+            onFatalErrorListener.onFatalErrorEvent(errorType, record, exception);
         } else {
-            defaultOnFatalErrorListener.onFatalErrorEvent(exception, errorType);
+            defaultOnFatalErrorListener.onFatalErrorEvent(errorType, record, exception);
         }
     }
 }

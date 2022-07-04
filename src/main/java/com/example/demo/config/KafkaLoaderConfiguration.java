@@ -4,6 +4,7 @@ import com.example.demo.kafka.*;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaClientMetrics;
 import lombok.AllArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +32,7 @@ public class KafkaLoaderConfiguration {
         return new KafkaExceptionHandler.OnSkippedRecordListener() {
 
             @Override
-            public void onSkippedRecordEvent(Exception exception, KafkaExceptionHandler.ErrorType errorType) {
+            public <K, V> void onSkippedRecordEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalSkippedRecords().increment();
                 kafkaErrorHandlerMetrics.totalSkippedRecords(exception, errorType).increment();
 
@@ -45,7 +46,7 @@ public class KafkaLoaderConfiguration {
 
         return new KafkaExceptionHandler.OnFatalErrorListener() {
             @Override
-            public void onFatalErrorEvent(Exception exception, KafkaExceptionHandler.ErrorType errorType) {
+            public <K, V> void onFatalErrorEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalFatalError().increment();
                 kafkaErrorHandlerMetrics.totalFatalError(exception, errorType).increment();
 

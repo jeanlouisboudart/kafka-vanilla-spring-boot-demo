@@ -122,7 +122,7 @@ public abstract class BaseExceptionHandlerTest {
 
     public abstract void serializationErrorOnKey();
 
-    protected void setupSerializationErrorOnKey(
+    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupSerializationErrorOnKey(
             KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
             OnSkippedRecordListener onSkippedRecordListener,
             OnFatalErrorListener onFatalErrorListener) {
@@ -146,11 +146,12 @@ public abstract class BaseExceptionHandlerTest {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
         exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        return record;
     }
 
     public abstract void deserializationErrorOnValue();
 
-    protected void setupDeserializationErrorOnValue(
+    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupDeserializationErrorOnValue(
             KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
             OnSkippedRecordListener onSkippedRecordListener,
             OnFatalErrorListener onFatalErrorListener) {
@@ -174,11 +175,12 @@ public abstract class BaseExceptionHandlerTest {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
         exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        return record;
     }
 
     public abstract void processingError();
 
-    protected void setupProcessingError(OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
+    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupProcessingError(OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -199,6 +201,7 @@ public abstract class BaseExceptionHandlerTest {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
         exceptionHandler.handleProcessingError(fetchedRecord, new Exception("BOOM"), onSkippedRecordListener, onFatalErrorListener);
+        return record;
     }
 
     @BeforeEach
