@@ -27,15 +27,42 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
-    public KafkaExceptionHandler kafkaExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer) {
+    public KafkaExceptionHandler.OnSkippedRecordListener defaultOnSkippedListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
+        return new KafkaExceptionHandler.OnSkippedRecordListener() {
+
+            @Override
+            public void onSkippedRecordEvent(Exception exception, KafkaExceptionHandler.ErrorType errorType) {
+                kafkaErrorHandlerMetrics.totalSkippedRecords().increment();
+                kafkaErrorHandlerMetrics.totalSkippedRecords(exception, errorType).increment();
+
+            }
+        };
+    }
+
+
+    @Bean
+    public KafkaExceptionHandler.OnFatalErrorListener defaultOnFatalErrorListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
+
+        return new KafkaExceptionHandler.OnFatalErrorListener() {
+            @Override
+            public void onFatalErrorEvent(Exception exception, KafkaExceptionHandler.ErrorType errorType) {
+                kafkaErrorHandlerMetrics.totalFatalError().increment();
+                kafkaErrorHandlerMetrics.totalFatalError(exception, errorType).increment();
+
+            }
+        };
+    }
+
+    @Bean
+    public KafkaExceptionHandler kafkaExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer, KafkaExceptionHandler.OnSkippedRecordListener defaultOnSkippedListener, KafkaExceptionHandler.OnFatalErrorListener defaultOnFatalErrorListener) {
         String handlerType = Optional.ofNullable(kafkaConfig.getExceptionHandler()).orElseThrow(() -> new IllegalStateException("exception handler not configured"));
         switch (handlerType) {
             case LOG_AND_CONTINUE:
-                return new LogAndContinueExceptionHandler();
+                return new LogAndContinueExceptionHandler(defaultOnSkippedListener);
             case LOG_AND_FAIL:
-                return new LogAndFailExceptionHandler();
+                return new LogAndFailExceptionHandler(defaultOnFatalErrorListener);
             case DEAD_LETTER_QUEUE:
-                return new DlqExceptionHandler(dlqProducer, kafkaConfig.getDlqName(), kafkaConfig.getAppName());
+                return new DlqExceptionHandler(dlqProducer, kafkaConfig.getDlqName(), kafkaConfig.getAppName(), true, defaultOnSkippedListener, defaultOnFatalErrorListener);
             default:
                 throw new IllegalStateException("unknown exception handler: " + handlerType);
         }
