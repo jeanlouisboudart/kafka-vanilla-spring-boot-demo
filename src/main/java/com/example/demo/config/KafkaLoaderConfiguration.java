@@ -35,7 +35,6 @@ public class KafkaLoaderConfiguration {
             public <K, V> void onSkippedRecordEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalSkippedRecords().increment();
                 kafkaErrorHandlerMetrics.totalSkippedRecords(exception, errorType).increment();
-
             }
         };
     }
@@ -49,7 +48,8 @@ public class KafkaLoaderConfiguration {
             public <K, V> void onFatalErrorEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalFatalError().increment();
                 kafkaErrorHandlerMetrics.totalFatalError(exception, errorType).increment();
-
+                //By default, we propagate the exception but here you can customize the global behavior like shutting down the application if you want to have fail-fast approach.
+                throw new RuntimeException(exception);
             }
         };
     }
