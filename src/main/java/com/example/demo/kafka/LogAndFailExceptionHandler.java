@@ -23,11 +23,7 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
             Exception exception,
             OnSkippedRecordListener onSkippedRecordListener,
             OnFatalErrorListener onFatalErrorListener) {
-        logger.warn("Exception caught during processing, topic: {}, partition: {}, offset: {}",
-                record.topic(),
-                record.partition(),
-                record.offset(),
-                exception);
+        logger.error("Exception caught during processing, topic: " + record.topic() + ", partition: " + record.partition() + ", offset: " + record.offset(), exception);
         fireOnFatalErrorEvent(ErrorType.PROCESSING_ERROR, record, exception, onFatalErrorListener);
     }
 
@@ -38,21 +34,13 @@ public class LogAndFailExceptionHandler implements KafkaExceptionHandler {
             OnSkippedRecordListener onSkippedRecordListener,
             OnFatalErrorListener onFatalErrorListener) {
         if (record.key() != null && !record.key().valid()) {
-            logger.warn("Exception caught during Deserialization of the key, topic: {}, partition: {}, offset: {}",
-                    record.topic(),
-                    record.partition(),
-                    record.offset(),
-                    record.key().getException());
+            logger.error("Exception caught during Deserialization of the key, topic: " + record.topic() + ", partition: " + record.partition() + ", offset: " + record.offset(), record.key().getException());
             fireOnFatalErrorEvent(ErrorType.DESERIALIZATION_ERROR, record, record.key().getException(), onFatalErrorListener);
             return;
         }
 
         if (record.key() != null && !record.value().valid()) {
-            logger.warn("Exception caught during Deserialization of the value, topic: {}, partition: {}, offset: {}",
-                    record.topic(),
-                    record.partition(),
-                    record.offset(),
-                    record.value().getException());
+            logger.error("Exception caught during Deserialization of the key, topic: " + record.topic() + ", partition: " + record.partition() + ", offset: " + record.offset(), record.key().getException());
             fireOnFatalErrorEvent(ErrorType.DESERIALIZATION_ERROR, record, record.key().getException(), onFatalErrorListener);
             return;
         }

@@ -95,14 +95,19 @@ public class DlqExceptionHandler implements KafkaExceptionHandler, Closeable {
     }
 
     private <K, V> void errorWhileWritingToDLQ(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception e, OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
-        logger.error("Could not send to dlq, topic: {}, partition: {}, offset: {}",
-                record.topic(),
-                record.partition(),
-                record.offset(),
-                e);
         if (failWhenErrorWritingToDlq) {
+            logger.error("Could not send to dlq, topic: {}, partition: {}, offset: {}",
+                    record.topic(),
+                    record.partition(),
+                    record.offset(),
+                    e);
             fireOnFatalErrorEvent(errorType, record, e, onFatalErrorListener);
         } else {
+            logger.warn("Could not send to dlq, topic: {}, partition: {}, offset: {}",
+                    record.topic(),
+                    record.partition(),
+                    record.offset(),
+                    e);
             fireOnSkippedEvent(errorType, record, e, onSkippedRecordListener);
         }
     }
