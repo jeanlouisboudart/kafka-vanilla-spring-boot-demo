@@ -20,13 +20,13 @@ public class KafkaConfig {
 
     private static final String DLQ_SUFFIX = "-dlq";
     @Setter
-    private Map<String, Object> properties;
+    private Map<String, String> properties;
 
     @Setter
-    private Map<String, Object> producer;
+    private Map<String, String> producer;
 
     @Setter
-    private Map<String, Object> consumer;
+    private Map<String, String> consumer;
 
     @Value("${spring.application.name}")
     @Getter

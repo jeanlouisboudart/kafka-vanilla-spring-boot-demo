@@ -43,16 +43,17 @@ Most of the configuration is done via traditional [application.yml](src/main/res
 ```yaml
 kafka:
   properties:
-    "[bootstrap.servers]": "localhost:29092"
-    "[schema.registry.url]": "http://localhost:8081"
-    "[specific.avro.reader]": "true"
+    bootstrap.servers: "localhost:29092"
+
+    schema.registry.url: "http://localhost:8081"
+    specific.avro.reader: "true"
   producer:
-    "[key.serializer]": "org.apache.kafka.common.serialization.StringSerializer"
-    "[value.serializer]": "io.confluent.kafka.serializers.KafkaAvroSerializer"
+    key.serializer: "org.apache.kafka.common.serialization.StringSerializer"
+    value.serializer: "io.confluent.kafka.serializers.KafkaAvroSerializer"
   consumer:
-    "[key.deserializer]": "org.apache.kafka.common.serialization.StringDeserializer"
-    "[value.deserializer]": "io.confluent.kafka.serializers.KafkaAvroDeserializer"
-    "[group.id]": "demo-kafka-vanilla"
+    key.deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
+    value.deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
+    group.id: "demo-kafka-vanilla"
 ```
 Basically you have global properties, producer and consumer specific properties.
 Every property configured as global (like schema registry here) will be injected in all producers/consumers configuration.
