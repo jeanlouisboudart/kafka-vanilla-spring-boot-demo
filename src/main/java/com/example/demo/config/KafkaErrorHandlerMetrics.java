@@ -30,10 +30,10 @@ public class KafkaErrorHandlerMetrics {
     }
 
 
-    public Counter totalSkippedRecords(Exception exception, KafkaExceptionHandler.ErrorType errorType) {
+    public Counter totalSkippedRecords(KafkaExceptionHandler.ErrorType errorType, Exception exception) {
         return meterRegistry.counter(SKIPPED_RECORDS_METRICS + DETAIL_SUFFIX,
-                TAG_EXCEPTION_CLASS, exception.getClass().getCanonicalName(),
-                TAG_ERROR_TYPE, errorType.name()
+                TAG_ERROR_TYPE, errorType.name(),
+                TAG_EXCEPTION_CLASS, exception.getClass().getCanonicalName()
         );
     }
 
@@ -42,11 +42,10 @@ public class KafkaErrorHandlerMetrics {
     }
 
 
-    public Counter totalFatalError(Exception exception, KafkaExceptionHandler.ErrorType errorType) {
+    public Counter totalFatalError(KafkaExceptionHandler.ErrorType errorType, Exception exception) {
         return meterRegistry.counter(FATAL_ERROR_METRICS + DETAIL_SUFFIX,
-                TAG_EXCEPTION_CLASS, exception.getClass().getCanonicalName(),
-                TAG_ERROR_TYPE, errorType.name()
-
+                TAG_ERROR_TYPE, errorType.name(),
+                TAG_EXCEPTION_CLASS, exception.getClass().getCanonicalName()
         );
     }
 
