@@ -35,11 +35,7 @@ public class KafkaConfig {
 
     @Getter
     @Setter
-    private String exceptionHandler = DEAD_LETTER_QUEUE;
-
-    public static final String LOG_AND_CONTINUE = "LogAndContinue";
-    public static final String LOG_AND_FAIL = "LogAndFail";
-    public static final String DEAD_LETTER_QUEUE = "DeadLetterQueue";
+    private ErrorHandler exceptionHandler = ErrorHandler.LogAndFail;
 
     @Setter
     private String dlqName;

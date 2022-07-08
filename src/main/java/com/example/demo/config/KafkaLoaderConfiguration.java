@@ -56,13 +56,13 @@ public class KafkaLoaderConfiguration {
 
     @Bean
     public KafkaExceptionHandler kafkaExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer, KafkaExceptionHandler.OnSkippedRecordListener defaultOnSkippedListener, KafkaExceptionHandler.OnFatalErrorListener defaultOnFatalErrorListener) {
-        String handlerType = Optional.ofNullable(kafkaConfig.getExceptionHandler()).orElseThrow(() -> new IllegalStateException("exception handler not configured"));
+        ErrorHandler handlerType = Optional.ofNullable(kafkaConfig.getExceptionHandler()).orElseThrow(() -> new IllegalStateException("exception handler not configured"));
         switch (handlerType) {
-            case LOG_AND_CONTINUE:
+            case LogAndContinue:
                 return new LogAndContinueExceptionHandler(defaultOnSkippedListener);
-            case LOG_AND_FAIL:
+            case LogAndFail:
                 return new LogAndFailExceptionHandler(defaultOnFatalErrorListener);
-            case DEAD_LETTER_QUEUE:
+            case DeadLetterQueue:
                 return new DlqExceptionHandler(dlqProducer, kafkaConfig.getDlqName(), kafkaConfig.getAppName(), true, defaultOnSkippedListener, defaultOnFatalErrorListener);
             default:
                 throw new IllegalStateException("unknown exception handler: " + handlerType);

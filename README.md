@@ -54,6 +54,7 @@ kafka:
     key.deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
     value.deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
     group.id: "demo-kafka-vanilla"
+  exceptionHandler: "LogAndFail"
 ```
 Basically you have global properties, producer and consumer specific properties.
 Every property configured as global (like schema registry here) will be injected in all producers/consumers configuration.
@@ -76,8 +77,10 @@ The code provide multiple implementation:
 * [LogAndFail](src/main/java/com/example/demo/kafka/LogAndFailExceptionHandler.java)
 * [DeadLetterQueue](src/main/java/com/example/demo/kafka/DlqExceptionHandler.java)
 
-By default, the DeadLetterQueue implementation is used.
-It can be configured via your application.yml file.
+By default, the LogAndFail implementation is used.
+IT will encourage projects to think about error handling and picking the relevant strategy for their context.
+
+This behavior can be configured via `kafka.exceptionHandler` attribute your application.yml file.
 ```yaml
 kafka:
   exceptionHandler: "LogAndContinue"
