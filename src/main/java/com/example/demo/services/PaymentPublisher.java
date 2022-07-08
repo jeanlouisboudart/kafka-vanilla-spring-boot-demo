@@ -33,7 +33,7 @@ public class PaymentPublisher {
     }
 
     private void producerCallBack(RecordMetadata recordMetadata, Exception e) {
-        if(e != null)
+        if (e != null)
             logger.error("Error publishing payment", e);
         else
             logger.info("Acknowledgement received for {}", recordMetadata);
