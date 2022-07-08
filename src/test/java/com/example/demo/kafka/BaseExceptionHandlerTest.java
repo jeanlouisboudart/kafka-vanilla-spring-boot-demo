@@ -32,14 +32,14 @@ public abstract class BaseExceptionHandlerTest {
     protected final MockConsumer<DeserializerResult<String>, DeserializerResult<String>> mockConsumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
 
     @Setter
-    private KafkaExceptionHandler exceptionHandler;
+    private KafkaExceptionHandler<String, String> exceptionHandler;
 
     public abstract void messageWithKeyAndValueIsValid();
 
-    protected void setupMessageWithKeyAndValueIsValid(
-            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
+    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupMessageWithKeyAndValueIsValid(
+            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnSkippedRecordListener<String, String> onSkippedRecordListener,
+            OnFatalErrorListener<String, String> onFatalErrorListener) {
 
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
@@ -62,14 +62,15 @@ public abstract class BaseExceptionHandlerTest {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
         exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        return record;
     }
 
     public abstract void messageWithoutKeyIsValid();
 
-    protected void setupMessageWithoutKeyIsValid(
-            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
+    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupMessageWithoutKeyIsValid(
+            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnSkippedRecordListener<String, String> onSkippedRecordListener,
+            OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -90,14 +91,15 @@ public abstract class BaseExceptionHandlerTest {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
         exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        return record;
     }
 
     public abstract void tombstoneIsValid();
 
-    protected void setupTombstoneIsValid(
-            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
+    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupTombstoneIsValid(
+            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnSkippedRecordListener<String, String> onSkippedRecordListener,
+            OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -118,14 +120,15 @@ public abstract class BaseExceptionHandlerTest {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> fetchedRecord = records.iterator().next();
 
         exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
+        return record;
     }
 
     public abstract void serializationErrorOnKey();
 
     protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupSerializationErrorOnKey(
-            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
+            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnSkippedRecordListener<String, String> onSkippedRecordListener,
+            OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -152,9 +155,9 @@ public abstract class BaseExceptionHandlerTest {
     public abstract void deserializationErrorOnValue();
 
     protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupDeserializationErrorOnValue(
-            KafkaExceptionHandler.OnValidRecordListener onValidRecordListener,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
+            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnSkippedRecordListener<String, String> onSkippedRecordListener,
+            OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,
@@ -180,7 +183,7 @@ public abstract class BaseExceptionHandlerTest {
 
     public abstract void processingError();
 
-    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupProcessingError(OnSkippedRecordListener onSkippedRecordListener, OnFatalErrorListener onFatalErrorListener) {
+    protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupProcessingError(OnSkippedRecordListener<String, String> onSkippedRecordListener, OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
                 TOPIC,
                 0,

@@ -4,25 +4,25 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
+public class LogAndContinueExceptionHandler<K, V> implements KafkaExceptionHandler<K, V> {
     private final Logger logger = LoggerFactory.getLogger(LogAndContinueExceptionHandler.class);
 
-    private final OnSkippedRecordListener defaultOnSkippedRecordListener;
+    private final OnSkippedRecordListener<K, V> defaultOnSkippedRecordListener;
 
     public LogAndContinueExceptionHandler() {
-        this(new NoOpOnSkippedRecordListener());
+        this(new NoOpOnSkippedRecordListener<>());
     }
 
-    public LogAndContinueExceptionHandler(OnSkippedRecordListener onSkippedRecordListener) {
+    public LogAndContinueExceptionHandler(OnSkippedRecordListener<K, V> onSkippedRecordListener) {
         this.defaultOnSkippedRecordListener = onSkippedRecordListener;
     }
 
     @Override
-    public <K, V> void handleProcessingError(
+    public void handleProcessingError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
             Exception exception,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
+            OnSkippedRecordListener<K, V> onSkippedRecordListener,
+            OnFatalErrorListener<K, V> onFatalErrorListener) {
         logger.warn("Exception caught during processing, topic: {}, partition: {}, offset: {}",
                 record.topic(),
                 record.partition(),
@@ -32,11 +32,11 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
     }
 
     @Override
-    public <K, V> void handleDeserializationError(
+    public void handleDeserializationError(
             ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecordListener onValidRecordListener,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener) {
+            OnValidRecordListener<K, V> onValidRecordListener,
+            OnSkippedRecordListener<K, V> onSkippedRecordListener,
+            OnFatalErrorListener<K, V> onFatalErrorListener) {
         if (record.key() != null && !record.key().valid()) {
             logger.warn("Exception caught during Deserialization of the key, topic: {}, partition: {}, offset: {}",
                     record.topic(),
@@ -56,10 +56,13 @@ public class LogAndContinueExceptionHandler implements KafkaExceptionHandler {
             fireOnSkippedEvent(ErrorType.DESERIALIZATION_ERROR, record, record.value().getException(), onSkippedRecordListener);
             return;
         }
-        onValidRecordListener.onValidRecordEvent();
+        onValidRecordListener.onValidRecordEvent(record);
     }
 
-    private <K, V> void fireOnSkippedEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception, OnSkippedRecordListener onSkippedRecordListener) {
+    private void fireOnSkippedEvent(ErrorType errorType,
+                                    ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
+                                    Exception exception,
+                                    OnSkippedRecordListener<K, V> onSkippedRecordListener) {
         if (onSkippedRecordListener != null) {
             onSkippedRecordListener.onSkippedRecordEvent(errorType, record, exception);
         } else {

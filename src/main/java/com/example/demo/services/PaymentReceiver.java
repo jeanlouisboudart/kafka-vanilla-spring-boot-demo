@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.List;
 public class PaymentReceiver {
     private final Logger logger = LoggerFactory.getLogger(PaymentReceiver.class);
     private final KafkaConsumer<DeserializerResult<String>, DeserializerResult<Payment>> consumer;
-    private final KafkaExceptionHandler kafkaExceptionHandler;
+    private final KafkaExceptionHandler<String, Payment> kafkaExceptionHandler;
 
     @PostConstruct
     public void init() {
@@ -36,7 +35,7 @@ public class PaymentReceiver {
         for (ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record : records) {
             kafkaExceptionHandler.handleDeserializationError(
                     record,
-                    () -> onValidRecord(payments, record)
+                    (validRecord) -> onValidRecord(payments, validRecord)
             );
 
         }

@@ -2,58 +2,58 @@ package com.example.demo.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-public interface KafkaExceptionHandler {
+public interface KafkaExceptionHandler<K, V> {
 
-    <K, V> void handleProcessingError(
+    void handleProcessingError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
             Exception exception,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener);
+            OnSkippedRecordListener<K, V> onSkippedRecordListener,
+            OnFatalErrorListener<K, V> onFatalErrorListener);
 
-    default <K, V> void handleProcessingError(
+    default void handleProcessingError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
             Exception exception) {
         handleProcessingError(record, exception, null, null);
     }
 
-    <K, V> void handleDeserializationError(
+    void handleDeserializationError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecordListener onValidRecordListener,
-            OnSkippedRecordListener onSkippedRecordListener,
-            OnFatalErrorListener onFatalErrorListener);
+            OnValidRecordListener<K, V> onValidRecordListener,
+            OnSkippedRecordListener<K, V> onSkippedRecordListener,
+            OnFatalErrorListener<K, V> onFatalErrorListener);
 
-    default <K, V> void handleDeserializationError(
+    default void handleDeserializationError(
             final ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record,
-            OnValidRecordListener onValidRecordListener) {
+            OnValidRecordListener<K, V> onValidRecordListener) {
         handleDeserializationError(record, onValidRecordListener, null, null);
     }
 
     @FunctionalInterface
-    interface OnValidRecordListener {
-        void onValidRecordEvent();
+    interface OnValidRecordListener<K, V> {
+        void onValidRecordEvent(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record);
     }
 
     @FunctionalInterface
-    interface OnSkippedRecordListener {
-        <K, V> void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
+    interface OnSkippedRecordListener<K, V> {
+        void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
     }
 
     @FunctionalInterface
-    interface OnFatalErrorListener {
-        <K, V> void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
+    interface OnFatalErrorListener<K, V> {
+        void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
     }
 
-    class NoOpOnSkippedRecordListener implements OnSkippedRecordListener {
+    class NoOpOnSkippedRecordListener<K, V> implements OnSkippedRecordListener<K, V> {
         @Override
-        public <K, V> void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+        public void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
 
         }
     }
 
-    class PropagateFatalErrorListener implements OnFatalErrorListener {
+    class PropagateFatalErrorListener<K, V> implements OnFatalErrorListener<K, V> {
 
         @Override
-        public <K, V> void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+        public void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
             throw new RuntimeException(exception);
         }
     }

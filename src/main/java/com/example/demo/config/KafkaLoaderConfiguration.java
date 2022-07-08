@@ -12,8 +12,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Optional;
 
-import static com.example.demo.config.KafkaConfig.*;
-
 @Configuration
 @AllArgsConstructor
 public class KafkaLoaderConfiguration {
@@ -28,11 +26,11 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
-    public KafkaExceptionHandler.OnSkippedRecordListener defaultOnSkippedListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
-        return new KafkaExceptionHandler.OnSkippedRecordListener() {
+    public <K, V> KafkaExceptionHandler.OnSkippedRecordListener<K, V> defaultOnSkippedListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
+        return new KafkaExceptionHandler.OnSkippedRecordListener<>() {
 
             @Override
-            public <K, V> void onSkippedRecordEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+            public void onSkippedRecordEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalSkippedRecords().increment();
                 kafkaErrorHandlerMetrics.totalSkippedRecords(errorType, exception).increment();
             }
@@ -41,11 +39,11 @@ public class KafkaLoaderConfiguration {
 
 
     @Bean
-    public KafkaExceptionHandler.OnFatalErrorListener defaultOnFatalErrorListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
+    public <K, V> KafkaExceptionHandler.OnFatalErrorListener<K, V> defaultOnFatalErrorListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
 
-        return new KafkaExceptionHandler.OnFatalErrorListener() {
+        return new KafkaExceptionHandler.OnFatalErrorListener<>() {
             @Override
-            public <K, V> void onFatalErrorEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+            public void onFatalErrorEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalFatalError().increment();
                 kafkaErrorHandlerMetrics.totalFatalError(errorType, exception).increment();
                 //By default, we propagate the exception but here you can customize the global behavior like shutting down the application if you want to have fail-fast approach.
@@ -55,15 +53,15 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
-    public KafkaExceptionHandler kafkaExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer, KafkaExceptionHandler.OnSkippedRecordListener defaultOnSkippedListener, KafkaExceptionHandler.OnFatalErrorListener defaultOnFatalErrorListener) {
+    public <K, V> KafkaExceptionHandler<K, V> kafkaExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer, KafkaExceptionHandler.OnSkippedRecordListener<K, V> defaultOnSkippedListener, KafkaExceptionHandler.OnFatalErrorListener<K, V> defaultOnFatalErrorListener) {
         ErrorHandler handlerType = Optional.ofNullable(kafkaConfig.getExceptionHandler()).orElseThrow(() -> new IllegalStateException("exception handler not configured"));
         switch (handlerType) {
             case LogAndContinue:
-                return new LogAndContinueExceptionHandler(defaultOnSkippedListener);
+                return new LogAndContinueExceptionHandler<>(defaultOnSkippedListener);
             case LogAndFail:
-                return new LogAndFailExceptionHandler(defaultOnFatalErrorListener);
+                return new LogAndFailExceptionHandler<>(defaultOnFatalErrorListener);
             case DeadLetterQueue:
-                return new DlqExceptionHandler(dlqProducer, kafkaConfig.getDlqName(), kafkaConfig.getAppName(), true, defaultOnSkippedListener, defaultOnFatalErrorListener);
+                return new DlqExceptionHandler<>(dlqProducer, kafkaConfig.getDlqName(), kafkaConfig.getAppName(), true, defaultOnSkippedListener, defaultOnFatalErrorListener);
             default:
                 throw new IllegalStateException("unknown exception handler: " + handlerType);
         }
