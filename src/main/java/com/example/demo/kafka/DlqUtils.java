@@ -12,6 +12,7 @@ public class DlqUtils {
     public static final String DLQ_HEADER_OFFSET = DLQ_HEADER_PREFIX + "offset";
     public static final String DLQ_HEADER_EXCEPTION_CLASS = DLQ_HEADER_PREFIX + "exception.class.name";
     public static final String DLQ_HEADER_EXCEPTION_MESSAGE = DLQ_HEADER_PREFIX + "exception.message";
+    public static final String DLQ_HEADER_ERROR_TYPE = DLQ_HEADER_PREFIX + "type";
 
     public static void addHeader(Headers headers, String headerName, String value) {
         byte[] valueAsBytes = value != null ? value.getBytes() : null;

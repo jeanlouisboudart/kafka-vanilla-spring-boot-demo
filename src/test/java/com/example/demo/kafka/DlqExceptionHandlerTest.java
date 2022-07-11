@@ -93,6 +93,7 @@ public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
         assertThat(getHeaderAsInt(producerRecord.headers(), DLQ_HEADER_OFFSET)).isEqualTo(1);
         assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_CLASS)).isEqualTo(SerializationException.class.getCanonicalName());
         assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_MESSAGE)).isEqualTo("BOOM");
+        assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_ERROR_TYPE)).isEqualTo(ErrorType.DESERIALIZATION_ERROR.toString());
         assertThat(producerRecord.key()).isEqualTo(POISON_PILL_KEY.getBytes());
         assertThat(producerRecord.value()).isEqualTo(VALID_VALUE.getBytes());
     }
@@ -113,6 +114,7 @@ public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
         assertThat(getHeaderAsInt(producerRecord.headers(), DLQ_HEADER_OFFSET)).isEqualTo(1);
         assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_CLASS)).isEqualTo(SerializationException.class.getCanonicalName());
         assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_MESSAGE)).isEqualTo("BOOM");
+        assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_ERROR_TYPE)).isEqualTo(ErrorType.DESERIALIZATION_ERROR.toString());
         assertThat(producerRecord.key()).isEqualTo(VALID_KEY.getBytes());
         assertThat(producerRecord.value()).isEqualTo(POISON_PILL_VALUE.getBytes());
 
@@ -133,6 +135,7 @@ public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
         assertThat(getHeaderAsInt(producerRecord.headers(), DLQ_HEADER_OFFSET)).isEqualTo(1);
         assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_CLASS)).isEqualTo(Exception.class.getCanonicalName());
         assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_EXCEPTION_MESSAGE)).isEqualTo("BOOM");
+        assertThat(getHeaderAsString(producerRecord.headers(), DLQ_HEADER_ERROR_TYPE)).isEqualTo(ErrorType.PROCESSING_ERROR.toString());
         assertThat(producerRecord.key()).isEqualTo(VALID_KEY.getBytes());
         assertThat(producerRecord.value()).isEqualTo(VALID_VALUE.getBytes());
 

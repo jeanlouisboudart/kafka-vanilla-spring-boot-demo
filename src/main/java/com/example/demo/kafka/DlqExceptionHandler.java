@@ -125,6 +125,7 @@ public class DlqExceptionHandler<K, V> implements KafkaExceptionHandler<K, V>, C
         addHeader(headers, DLQ_HEADER_TIMESTAMP, Instant.now().toString());
         addHeader(headers, DLQ_HEADER_EXCEPTION_CLASS, exception.getClass().getCanonicalName());
         addHeader(headers, DLQ_HEADER_EXCEPTION_MESSAGE, exception.getMessage());
+        addHeader(headers, DLQ_HEADER_ERROR_TYPE, errorType.name());
 
 
         byte[] key = record.key() != null ? record.key().getValueAsBytes() : null;

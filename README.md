@@ -107,6 +107,7 @@ In addition to this it will add some useful headers :
 * `dlq.error.offset` containing the source offset
 * `dlq.error.exception.class.name` containing the exception class name
 * `dlq.error.exception.message` containing the exception message
+* `dlq.error.type` containing the error type (either DESERIALIZATION_ERROR or PROCESSING_ERROR)
 
 # Deep diving in the code
 Some important pointers in the code :
