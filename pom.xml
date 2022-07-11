@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>spring-kafka-vanilla-demo</artifactId>
+	<artifactId>kafka-vanilla-spring-boot-demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spring-kafka-vanilla-demo</name>
+	<name>kafka-vanilla-spring-boot-demo</name>
 	<description>Demo of Kafka vanilla client with Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>

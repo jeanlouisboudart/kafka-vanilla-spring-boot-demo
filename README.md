@@ -1,4 +1,4 @@
-# spring-kafka-vanilla-demo
+# kafka-vanilla-spring-boot-demo
 
 The main motivation of this project is to showcase how to integrate Kafka vanilla client in Spring Boot application.
 
@@ -53,7 +53,7 @@ kafka:
   consumer:
     key.deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
     value.deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
-    group.id: "demo-kafka-vanilla"
+    group.id: "kafka-vanilla-spring-boot-demo"
   exceptionHandler: "LogAndFail"
 ```
 Basically you have global properties, producer and consumer specific properties.
