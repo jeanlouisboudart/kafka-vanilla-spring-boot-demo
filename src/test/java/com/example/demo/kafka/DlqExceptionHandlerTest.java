@@ -28,11 +28,11 @@ import static org.mockito.Mockito.verify;
 public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
 
     @Mock
-    private KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener;
+    private OnValidRecordListener<String, String> onValidRecordListener;
     @Mock
-    private KafkaExceptionHandler.OnSkippedRecordListener<String, String> onSkippedRecordListener;
+    private OnSkippedRecordListener<String, String> onSkippedRecordListener;
     @Mock
-    private KafkaExceptionHandler.OnFatalErrorListener<String, String> onFatalErrorListener;
+    private OnFatalErrorListener<String, String> onFatalErrorListener;
 
     private final MockProducer<byte[], byte[]> mockProducer = new MockProducer<>(true, new ByteArraySerializer(), new ByteArraySerializer());
     private final DlqExceptionHandler<String, String> exceptionHandler = new DlqExceptionHandler<>(mockProducer, DLQ_TOPIC, APP_NAME);
@@ -82,7 +82,7 @@ public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
     public void serializationErrorOnKey() {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = setupSerializationErrorOnKey(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener, Mockito.never()).onValidRecordEvent(record);
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(KafkaExceptionHandler.ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
         verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any(), Mockito.any());
 
         assertThat(mockProducer.history()).hasSize(1);
@@ -102,7 +102,7 @@ public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
     public void deserializationErrorOnValue() {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = setupDeserializationErrorOnValue(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener, Mockito.never()).onValidRecordEvent(record);
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(KafkaExceptionHandler.ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
         verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any(), Mockito.any());
 
         assertThat(mockProducer.history()).hasSize(1);
@@ -122,7 +122,7 @@ public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
     @Override
     public void processingError() {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = setupProcessingError(onSkippedRecordListener, onFatalErrorListener);
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(KafkaExceptionHandler.ErrorType.PROCESSING_ERROR), Mockito.eq(record), Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(ErrorType.PROCESSING_ERROR), Mockito.eq(record), Mockito.any());
         verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any(), Mockito.any());
 
         assertThat(mockProducer.history()).hasSize(1);
@@ -163,7 +163,7 @@ public class DlqExceptionHandlerTest extends BaseExceptionHandlerTest {
         exceptionHandler.handleDeserializationError(fetchedRecord, onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener, Mockito.never()).onValidRecordEvent(record);
         verify(onSkippedRecordListener, Mockito.never()).onSkippedRecordEvent(Mockito.any(), Mockito.any(), Mockito.any());
-        verify(onFatalErrorListener).onFatalErrorEvent(Mockito.eq(KafkaExceptionHandler.ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
+        verify(onFatalErrorListener).onFatalErrorEvent(Mockito.eq(ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
         assertThat(mockProducer.history()).isEmpty();
     }
 

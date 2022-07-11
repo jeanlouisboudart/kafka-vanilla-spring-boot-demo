@@ -28,38 +28,4 @@ public interface KafkaExceptionHandler<K, V> {
         handleDeserializationError(record, onValidRecordListener, null, null);
     }
 
-    @FunctionalInterface
-    interface OnValidRecordListener<K, V> {
-        void onValidRecordEvent(ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record);
-    }
-
-    @FunctionalInterface
-    interface OnSkippedRecordListener<K, V> {
-        void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
-    }
-
-    @FunctionalInterface
-    interface OnFatalErrorListener<K, V> {
-        void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception);
-    }
-
-    class NoOpOnSkippedRecordListener<K, V> implements OnSkippedRecordListener<K, V> {
-        @Override
-        public void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
-
-        }
-    }
-
-    class PropagateFatalErrorListener<K, V> implements OnFatalErrorListener<K, V> {
-
-        @Override
-        public void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
-            throw new RuntimeException(exception);
-        }
-    }
-
-    enum ErrorType {
-        DESERIALIZATION_ERROR,
-        PROCESSING_ERROR
-    }
 }

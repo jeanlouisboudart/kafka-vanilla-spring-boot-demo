@@ -1,7 +1,5 @@
 package com.example.demo.kafka;
 
-import com.example.demo.kafka.KafkaExceptionHandler.OnFatalErrorListener;
-import com.example.demo.kafka.KafkaExceptionHandler.OnSkippedRecordListener;
 import lombok.Setter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -37,7 +35,7 @@ public abstract class BaseExceptionHandlerTest {
     public abstract void messageWithKeyAndValueIsValid();
 
     protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupMessageWithKeyAndValueIsValid(
-            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnValidRecordListener<String, String> onValidRecordListener,
             OnSkippedRecordListener<String, String> onSkippedRecordListener,
             OnFatalErrorListener<String, String> onFatalErrorListener) {
 
@@ -68,7 +66,7 @@ public abstract class BaseExceptionHandlerTest {
     public abstract void messageWithoutKeyIsValid();
 
     protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupMessageWithoutKeyIsValid(
-            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnValidRecordListener<String, String> onValidRecordListener,
             OnSkippedRecordListener<String, String> onSkippedRecordListener,
             OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
@@ -97,7 +95,7 @@ public abstract class BaseExceptionHandlerTest {
     public abstract void tombstoneIsValid();
 
     protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupTombstoneIsValid(
-            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnValidRecordListener<String, String> onValidRecordListener,
             OnSkippedRecordListener<String, String> onSkippedRecordListener,
             OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
@@ -126,7 +124,7 @@ public abstract class BaseExceptionHandlerTest {
     public abstract void serializationErrorOnKey();
 
     protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupSerializationErrorOnKey(
-            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnValidRecordListener<String, String> onValidRecordListener,
             OnSkippedRecordListener<String, String> onSkippedRecordListener,
             OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(
@@ -155,7 +153,7 @@ public abstract class BaseExceptionHandlerTest {
     public abstract void deserializationErrorOnValue();
 
     protected ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> setupDeserializationErrorOnValue(
-            KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener,
+            OnValidRecordListener<String, String> onValidRecordListener,
             OnSkippedRecordListener<String, String> onSkippedRecordListener,
             OnFatalErrorListener<String, String> onFatalErrorListener) {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = new ConsumerRecord<>(

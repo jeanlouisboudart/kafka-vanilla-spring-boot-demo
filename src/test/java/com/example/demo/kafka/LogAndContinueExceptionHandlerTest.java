@@ -14,11 +14,11 @@ import static org.mockito.Mockito.verify;
 public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest {
 
     @Mock
-    private KafkaExceptionHandler.OnValidRecordListener<String, String> onValidRecordListener;
+    private OnValidRecordListener<String, String> onValidRecordListener;
     @Mock
-    private KafkaExceptionHandler.OnSkippedRecordListener<String, String> onSkippedRecordListener;
+    private OnSkippedRecordListener<String, String> onSkippedRecordListener;
     @Mock
-    private KafkaExceptionHandler.OnFatalErrorListener<String, String> onFatalErrorListener;
+    private OnFatalErrorListener<String, String> onFatalErrorListener;
 
     public LogAndContinueExceptionHandlerTest() {
         setExceptionHandler(new LogAndContinueExceptionHandler<>());
@@ -57,7 +57,7 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     public void serializationErrorOnKey() {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = setupSerializationErrorOnKey(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener, Mockito.never()).onValidRecordEvent(record);
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(KafkaExceptionHandler.ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
         verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -67,7 +67,7 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     public void deserializationErrorOnValue() {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = setupDeserializationErrorOnValue(onValidRecordListener, onSkippedRecordListener, onFatalErrorListener);
         verify(onValidRecordListener, Mockito.never()).onValidRecordEvent(record);
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(KafkaExceptionHandler.ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(ErrorType.DESERIALIZATION_ERROR), Mockito.eq(record), Mockito.any());
         verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -75,7 +75,7 @@ public class LogAndContinueExceptionHandlerTest extends BaseExceptionHandlerTest
     @Override
     public void processingError() {
         ConsumerRecord<DeserializerResult<String>, DeserializerResult<String>> record = setupProcessingError(onSkippedRecordListener, onFatalErrorListener);
-        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(KafkaExceptionHandler.ErrorType.PROCESSING_ERROR), Mockito.eq(record), Mockito.any());
+        verify(onSkippedRecordListener).onSkippedRecordEvent(Mockito.eq(ErrorType.PROCESSING_ERROR), Mockito.eq(record), Mockito.any());
         verify(onFatalErrorListener, Mockito.never()).onFatalErrorEvent(Mockito.any(), Mockito.any(), Mockito.any());
     }
 }

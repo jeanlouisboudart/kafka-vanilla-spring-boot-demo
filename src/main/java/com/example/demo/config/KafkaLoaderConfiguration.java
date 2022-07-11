@@ -26,11 +26,11 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
-    public <K, V> KafkaExceptionHandler.OnSkippedRecordListener<K, V> defaultOnSkippedListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
-        return new KafkaExceptionHandler.OnSkippedRecordListener<>() {
+    public <K, V> OnSkippedRecordListener<K, V> defaultOnSkippedListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
+        return new OnSkippedRecordListener<>() {
 
             @Override
-            public void onSkippedRecordEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+            public void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalSkippedRecords().increment();
                 kafkaErrorHandlerMetrics.totalSkippedRecords(errorType, exception).increment();
             }
@@ -39,11 +39,11 @@ public class KafkaLoaderConfiguration {
 
 
     @Bean
-    public <K, V> KafkaExceptionHandler.OnFatalErrorListener<K, V> defaultOnFatalErrorListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
+    public <K, V> OnFatalErrorListener<K, V> defaultOnFatalErrorListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
 
-        return new KafkaExceptionHandler.OnFatalErrorListener<>() {
+        return new OnFatalErrorListener<>() {
             @Override
-            public void onFatalErrorEvent(KafkaExceptionHandler.ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
+            public void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
                 kafkaErrorHandlerMetrics.totalFatalError().increment();
                 kafkaErrorHandlerMetrics.totalFatalError(errorType, exception).increment();
                 //By default, we propagate the exception but here you can customize the global behavior like shutting down the application if you want to have fail-fast approach.
@@ -53,7 +53,7 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
-    public <K, V> KafkaExceptionHandler<K, V> kafkaExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer, KafkaExceptionHandler.OnSkippedRecordListener<K, V> defaultOnSkippedListener, KafkaExceptionHandler.OnFatalErrorListener<K, V> defaultOnFatalErrorListener) {
+    public <K, V> KafkaExceptionHandler<K, V> kafkaExceptionHandler(KafkaConfig kafkaConfig, KafkaProducer<byte[], byte[]> dlqProducer, OnSkippedRecordListener<K, V> defaultOnSkippedListener, OnFatalErrorListener<K, V> defaultOnFatalErrorListener) {
         ErrorHandler handlerType = Optional.ofNullable(kafkaConfig.getExceptionHandler()).orElseThrow(() -> new IllegalStateException("exception handler not configured"));
         switch (handlerType) {
             case LogAndContinue:
