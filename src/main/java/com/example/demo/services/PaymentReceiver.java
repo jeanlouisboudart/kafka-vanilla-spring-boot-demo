@@ -10,45 +10,52 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
+@EnableAsync
 public class PaymentReceiver {
-    private final Logger logger = LoggerFactory.getLogger(PaymentReceiver.class);
     private final KafkaConsumer<DeserializerResult<String>, DeserializerResult<Payment>> consumer;
     private final KafkaExceptionHandler<String, Payment> kafkaExceptionHandler;
+    private final Logger logger = LoggerFactory.getLogger(PaymentReceiver.class);
 
-    @PostConstruct
-    public void init() {
-        consumer.subscribe(List.of(PaymentPublisher.TOPIC_NAME));
-    }
 
-    public List<PaymentDTO> read() {
-        ConsumerRecords<DeserializerResult<String>, DeserializerResult<Payment>> records = consumer.poll(Duration.ofMillis(200));
-        List<PaymentDTO> payments = new ArrayList<>();
-        for (ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record : records) {
-            kafkaExceptionHandler.handleDeserializationError(
-                    record,
-                    (validRecord) -> onValidRecord(payments, validRecord)
-            );
+    public void readMessages() {
+        while (true) {
+            ConsumerRecords<DeserializerResult<String>, DeserializerResult<Payment>> records = consumer.poll(Duration.ofMillis(200));
+            for (ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record : records) {
+                kafkaExceptionHandler.handleDeserializationError(
+                        record,
+                        (validRecord) -> onValidRecord(validRecord)
+                );
 
+            }
         }
-        return payments;
     }
 
-    private void onValidRecord(List<PaymentDTO> payments, ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record) {
+    private void onValidRecord(ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record) {
+        logger.debug("Consumed message key: {}, value: {}", record.key().getDeserializedValue(), record.value().getDeserializedValue().toString());
+        //Simulate data manipulation that could result into application errors (NPE)
         try {
-            payments.add(new PaymentDTO(record.value().getDeserializedValue()));
+            new PaymentDTO(record.value().getDeserializedValue());
         } catch (Exception exception) {
             //conversion to DTO expect non-null objects, What will happen if we receive a tombstone ?
             kafkaExceptionHandler.handleProcessingError(record, exception);
         }
 
+    }
+
+    //Start consumer on startup of the application
+    @EventListener(ApplicationReadyEvent.class)
+    @Async
+    public void onAppStarted() {
+        readMessages();
     }
 }

@@ -40,6 +40,10 @@ public class KafkaConfig {
     @Setter
     private String dlqName;
 
+    @Getter
+    @Setter
+    private int nbConsumerThread = 1;
+
     public String getDlqName() {
         return dlqName != null ? dlqName : appName + DLQ_SUFFIX;
     }
