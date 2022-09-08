@@ -42,10 +42,16 @@ public class KafkaConfig {
 
     @Getter
     @Setter
-    private int nbConsumerThread = 1;
+    private int nbConsumerThreads = 1;
+
+    private int nbConsumerCreated = 0;
 
     public String getDlqName() {
         return dlqName != null ? dlqName : appName + DLQ_SUFFIX;
+    }
+
+    public Map<String, Object> kafkaConfigs() {
+        return new HashMap<>(properties);
     }
 
     public Map<String, Object> producerConfigs() {
@@ -57,7 +63,7 @@ public class KafkaConfig {
 
     public Map<String, Object> consumerConfigs() {
         Map<String, Object> consumerProps = new HashMap<>(properties);
-        consumerProps.putIfAbsent(ConsumerConfig.CLIENT_ID_CONFIG, appName);
+        consumerProps.putIfAbsent(ConsumerConfig.CLIENT_ID_CONFIG, buildConsumerClientId());
         consumerProps.putAll(consumer);
         consumerProps.putIfAbsent(ErrorWrapperDeserializer.KEY_WRAPPER_DESERIALIZER_CLASS, consumerProps.getOrDefault(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName()));
         consumerProps.putIfAbsent(ErrorWrapperDeserializer.VALUE_WRAPPER_DESERIALIZER_CLASS, consumerProps.getOrDefault(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName()));
@@ -67,6 +73,12 @@ public class KafkaConfig {
 
         return consumerProps;
     }
+
+    public String buildConsumerClientId() {
+        String consumerClientIdPrefix = appName + "-consumer";
+        return nbConsumerThreads == 1 ? consumerClientIdPrefix : consumerClientIdPrefix + "-" + nbConsumerCreated++;
+    }
+
 
     public Map<String, Object> dlqProducerConfigs() {
         Map<String, Object> dlqConfig = new HashMap<>(properties);

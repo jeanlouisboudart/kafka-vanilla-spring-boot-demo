@@ -4,11 +4,11 @@ import com.example.demo.kafka.*;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaClientMetrics;
 import lombok.AllArgsConstructor;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 import java.util.Optional;
 
@@ -27,13 +27,9 @@ public class KafkaLoaderConfiguration {
 
     @Bean
     public <K, V> OnSkippedRecordListener<K, V> defaultOnSkippedListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
-        return new OnSkippedRecordListener<>() {
-
-            @Override
-            public void onSkippedRecordEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
-                kafkaErrorHandlerMetrics.totalSkippedRecords().increment();
-                kafkaErrorHandlerMetrics.totalSkippedRecords(errorType, exception).increment();
-            }
+        return (errorType, record, exception) -> {
+            kafkaErrorHandlerMetrics.totalSkippedRecords().increment();
+            kafkaErrorHandlerMetrics.totalSkippedRecords(errorType, exception).increment();
         };
     }
 
@@ -41,14 +37,11 @@ public class KafkaLoaderConfiguration {
     @Bean
     public <K, V> OnFatalErrorListener<K, V> defaultOnFatalErrorListener(KafkaErrorHandlerMetrics kafkaErrorHandlerMetrics) {
 
-        return new OnFatalErrorListener<>() {
-            @Override
-            public void onFatalErrorEvent(ErrorType errorType, ConsumerRecord<DeserializerResult<K>, DeserializerResult<V>> record, Exception exception) {
-                kafkaErrorHandlerMetrics.totalFatalError().increment();
-                kafkaErrorHandlerMetrics.totalFatalError(errorType, exception).increment();
-                //By default, we propagate the exception but here you can customize the global behavior like shutting down the application if you want to have fail-fast approach.
-                throw new RuntimeException(exception);
-            }
+        return (errorType, record, exception) -> {
+            kafkaErrorHandlerMetrics.totalFatalError().increment();
+            kafkaErrorHandlerMetrics.totalFatalError(errorType, exception).increment();
+            //By default, we propagate the exception but here you can customize the global behavior like shutting down the application if you want to have fail-fast approach.
+            throw new RuntimeException(exception);
         };
     }
 
@@ -73,6 +66,7 @@ public class KafkaLoaderConfiguration {
     }
 
     @Bean
+    @Scope("prototype")
     public KafkaConsumer<?, ?> createKafkaConsumerWithDLQ(KafkaConfig kafkaConfig) {
         KafkaConsumer<DeserializerResult<?>, DeserializerResult<?>> consumer = new KafkaConsumer<>(kafkaConfig.consumerConfigs());
         new KafkaClientMetrics(consumer).bindTo(meterRegistry);

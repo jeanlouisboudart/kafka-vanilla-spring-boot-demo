@@ -12,5 +12,6 @@ kafka:
     value.deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
     group.id: "kafka-vanilla-spring-boot-demo"
   exceptionHandler: "LogAndFail"
+  nbConsumerThreads: 1
 
 logging.level.com.example.demo: DEBUG

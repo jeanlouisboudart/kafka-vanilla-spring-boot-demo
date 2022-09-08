@@ -5,6 +5,7 @@ The main motivation of this project is to showcase how to integrate Kafka vanill
 Some ideas you might find in the project :
 * Dynamic loading of Producer/Consumer properties
 * Producer/Consumer metrics collection via Micrometer/Prometheus
+* Support multiple consumer threads
 * Deserialization & Processing Error Handling (has various strategies including dead letter queue)
 * Using Avro Generated classes
 
@@ -55,6 +56,7 @@ kafka:
     value.deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
     group.id: "kafka-vanilla-spring-boot-demo"
   exceptionHandler: "LogAndFail"
+  nbConsumerThreads: 1
 ```
 Basically you have global properties, producer and consumer specific properties.
 Every property configured as global (like schema registry here) will be injected in all producers/consumers configuration.
@@ -69,7 +71,7 @@ By-default the application is configured to use the spring boot application name
 This will ease monitoring if we have multiple instance of our application.
 If needed this can be overridden by specifying the [client.id](https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#producerconfigs_client.id) property on the producer or consumer config.
 
-# Error handling
+## Error handling
 The application provides dead letter queue on deserialization / processing error.
 
 The code provide multiple implementation: 
@@ -108,6 +110,19 @@ In addition to this it will add some useful headers :
 * `dlq.error.exception.class.name` containing the exception class name
 * `dlq.error.exception.message` containing the exception message
 * `dlq.error.type` containing the error type (either DESERIALIZATION_ERROR or PROCESSING_ERROR)
+
+## Configuring Multiple Consumer Thread
+Number of consumer thread is controlled by `kafka.  nbConsumerThreads` attribute your application.yml file.
+```yaml
+kafka:
+  nbConsumerThreads: 1
+```
+To support multiple thread the class containing your code must :
+* extend [AbstractKafkaReader](src/main/java/com/example/demo/services/AbstractKafkaReader.java) class
+* be annotated with @Service and @Scope("prototype") (see https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-factory-scopes-prototype to get more details)
+
+Behind the scene [ConsumerAsyncConfiguration](src/main/java/com/example/demo/config/ConsumerAsyncConfiguration.java) will create an executor service with the provided number of threads.
+In case of uncaught exception handler, the executor service is configured to stop the application.
 
 # Deep diving in the code
 Some important pointers in the code :
