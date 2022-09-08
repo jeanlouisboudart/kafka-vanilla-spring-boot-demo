@@ -2,7 +2,6 @@ package com.example.demo.services;
 
 import com.example.demo.kafka.DeserializerResult;
 import com.example.demo.kafka.KafkaExceptionHandler;
-import com.example.demo.models.PaymentDTO;
 import io.confluent.examples.clients.basicavro.Payment;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -38,10 +37,9 @@ public class PaymentReceiver extends AbstractKafkaReader<String, Payment> {
     }
 
     private void onValidRecord(ConsumerRecord<DeserializerResult<String>, DeserializerResult<Payment>> record) {
-        logger.debug("Consumed message key: {}, value: {}", record.key().getDeserializedValue(), record.value().getDeserializedValue().toString());
         //Simulate data manipulation that could result into application errors (NPE)
         try {
-            new PaymentDTO(record.value().getDeserializedValue());
+            logger.debug("Consumed message key: {}, value: {}", record.key().getDeserializedValue(), record.value().getDeserializedValue().toString());
         } catch (Exception exception) {
             //conversion to DTO expect non-null objects, What will happen if we receive a tombstone ?
             kafkaExceptionHandler.handleProcessingError(record, exception);
