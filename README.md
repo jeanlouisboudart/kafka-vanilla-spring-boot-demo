@@ -11,13 +11,13 @@ Some ideas you might find in the project :
 
 ## Start the environment
 To start the environment simply run the following command
-```
+```bash
 docker-compose up -d
 ```
 This would start a local Kafka cluster (single node) and UI ([Confluent Control Center](https://docs.confluent.io/platform/current/control-center/index.html)).
 
 Once started you can run the application by running 
-```
+```bash
 mvn spring-boot:run
 ```
 
@@ -28,8 +28,9 @@ You can also open the [Confluent Control Center](http://localhost:9021/) to expl
 
 ## Stopping the environment
 To stop the environment simply run the following command
-
+```bash
 docker-compose down -v
+```
 
 # Metrics collection
 Metrics are collected via micrometer. 
