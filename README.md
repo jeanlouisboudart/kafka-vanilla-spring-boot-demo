@@ -32,6 +32,21 @@ To stop the environment simply run the following command
 docker-compose down -v
 ```
 
+## Inspecting the consumer group
+To inspect the state of the consumer group you can run the following command 
+```bash
+docker-compose exec broker kafka-consumer-groups --bootstrap-server broker:9092 --group kafka-vanilla-spring-boot-demo --describe
+```
+This will show you if the application is running, what the current consumer offset position and potentially the lag.
+
+## Resetting offsets
+WARNING: Before you running this command you need to make sure that the application is stopped.
+
+If you need to reset offsets to beginning you can run the following command 
+```bash
+docker-compose exec broker kafka-consumer-groups --bootstrap-server broker:9092 --group kafka-vanilla-spring-boot-demo --reset-offsets --all-topics --to-earliest --execute
+```
+
 # Metrics collection
 Metrics are collected via micrometer. 
 You can choose the backend but this project showcase the prometheus backend.
