@@ -30,9 +30,12 @@ public class ConsumerAsyncConfiguration implements AsyncConfigurer {
     @Override
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        String[] consumerClasses = appContext.getBeanNamesForType(KafkaReader.class);
+        int nbThread = consumerClasses.length * kafkaConfig.getNbConsumerThreads();
+
         //set the number of consumer thread
-        threadPoolTaskExecutor.setCorePoolSize(kafkaConfig.getNbConsumerThreads());
-        threadPoolTaskExecutor.setMaxPoolSize(kafkaConfig.getNbConsumerThreads());
+        threadPoolTaskExecutor.setCorePoolSize(nbThread);
+        threadPoolTaskExecutor.setMaxPoolSize(nbThread);
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(true);
         threadPoolTaskExecutor.setAwaitTerminationMillis(Duration.ofSeconds(10).toMillis());
         threadPoolTaskExecutor.setThreadNamePrefix("consumer-");
