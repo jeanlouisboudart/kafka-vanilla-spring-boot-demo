@@ -7,6 +7,7 @@ import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,20 +25,20 @@ public abstract class BaseKafkaStreamsApp {
 
     public <T extends SpecificRecord> Serde<T> specificAvroSerdeKey() {
         final Serde<T> serde = new SpecificAvroSerde<>();
-        serde.configure(kafkaConfig.streamsConfigAsMap(), true);
+        serde.configure(kafkaConfig.streamsConfig(), true);
         return serde;
     }
 
     public <T extends SpecificRecord> Serde<T> specificAvroSerdeValue() {
         final Serde<T> serde = new SpecificAvroSerde<>();
-        serde.configure(kafkaConfig.streamsConfigAsMap(), false);
+        serde.configure(kafkaConfig.streamsConfig(), false);
         return serde;
     }
 
     public void startTopology() {
         Topology topology = buildTopology();
         logger.info("Starting" + topology.describe());
-        KafkaStreams kafkaStreams = new KafkaStreams(topology, kafkaConfig.streamsConfig());
+        KafkaStreams kafkaStreams = new KafkaStreams(topology, new StreamsConfig(kafkaConfig.streamsConfig()));
         new KafkaStreamsMetrics(kafkaStreams).bindTo(meterRegistry);
         kafkaStreams.start();
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));

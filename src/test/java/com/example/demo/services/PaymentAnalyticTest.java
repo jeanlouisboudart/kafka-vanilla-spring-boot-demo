@@ -51,7 +51,7 @@ public class PaymentAnalyticTest {
 
         PaymentAnalytic paymentAnalytic = new PaymentAnalytic(kafkaConfig, meterRegistry);
         Properties streamsProperties = new Properties();
-        streamsProperties.putAll(kafkaConfig.streamsConfigAsMap());
+        streamsProperties.putAll(kafkaConfig.streamsConfig());
         topologyTestDriver = new TopologyTestDriver(paymentAnalytic.buildTopology(), streamsProperties);
     }
 
@@ -80,14 +80,14 @@ public class PaymentAnalyticTest {
 
     private <T extends SpecificRecord> SpecificAvroSerializer<T> specificAvroSerializer(boolean isKey) {
         SpecificAvroSerializer<T> serializer = new SpecificAvroSerializer<>();
-        serializer.configure(kafkaConfig.streamsConfigAsMap(), isKey);
+        serializer.configure(kafkaConfig.streamsConfig(), isKey);
         return serializer;
     }
 
 
     private <T extends SpecificRecord> SpecificAvroDeserializer<T> specificAvroDeserializer(boolean isKey) {
         SpecificAvroDeserializer<T> deserializer = new SpecificAvroDeserializer<>();
-        deserializer.configure(kafkaConfig.streamsConfigAsMap(), isKey);
+        deserializer.configure(kafkaConfig.streamsConfig(), isKey);
         return deserializer;
     }
 }
