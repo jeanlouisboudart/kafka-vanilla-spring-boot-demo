@@ -29,14 +29,15 @@ public class PaymentPublisher {
     }
 
     private void sendMessage(ProducerRecord<String, Payment> paymentRecord) {
-        producer.send(paymentRecord, this::producerCallBack);
+        producer.send(paymentRecord, (recordMetadata, exception) -> producerCallBack(paymentRecord, recordMetadata, exception));
     }
 
-    private void producerCallBack(RecordMetadata recordMetadata, Exception e) {
-        if (e != null)
+    private void producerCallBack(ProducerRecord<String, Payment> paymentRecord, RecordMetadata recordMetadata, Exception e) {
+        if (e != null) {
             logger.error("Error publishing payment", e);
-        else
-            logger.info("Acknowledgement received for {}", recordMetadata);
+        } else {
+            logger.debug("Acknowledgement received for {} on topic {} partition {} offset {}", paymentRecord, recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset());
+        }
     }
 
     @PreDestroy
