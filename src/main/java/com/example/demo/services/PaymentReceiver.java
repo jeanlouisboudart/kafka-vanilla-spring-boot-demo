@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import com.example.demo.kafka.AbstractKafkaReader;
 import com.example.demo.kafka.DeserializerResult;
 import com.example.demo.kafka.KafkaExceptionHandler;
 import io.confluent.examples.clients.basicavro.Payment;

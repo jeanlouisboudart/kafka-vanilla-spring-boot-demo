@@ -1,4 +1,4 @@
-package com.example.demo.services;
+package com.example.demo.kafka;
 
 import org.springframework.scheduling.annotation.Async;
 

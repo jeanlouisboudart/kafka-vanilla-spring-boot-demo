@@ -1,6 +1,5 @@
-package com.example.demo.services;
+package com.example.demo.kafka;
 
-import com.example.demo.kafka.DeserializerResult;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 
