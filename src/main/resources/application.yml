@@ -11,6 +11,8 @@ kafka:
     key.deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
     value.deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
     group.id: "kafka-vanilla-spring-boot-demo"
+  streams:
+    application.id: "kafka-vanilla-string-boot-demo-streams"
   exceptionHandler: "LogAndFail"
   nbConsumerThreads: 1
 

@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,10 @@ public class KafkaConfig {
 
     @Setter
     private Map<String, String> consumer;
+
+    @Setter
+    private Map<String, String> streams;
+
 
     @Value("${spring.application.name}")
     @Getter
@@ -72,6 +77,17 @@ public class KafkaConfig {
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorWrapperDeserializer.class);
 
         return consumerProps;
+    }
+
+
+    public Map<String,Object> streamsConfigAsMap() {
+        Map<String, Object> streamsConfig = new HashMap<>(properties);
+        streamsConfig.putAll(streams);
+        return streamsConfig;
+    }
+
+    public StreamsConfig streamsConfig() {
+        return new StreamsConfig(streamsConfigAsMap());
     }
 
     public String buildConsumerClientId() {
