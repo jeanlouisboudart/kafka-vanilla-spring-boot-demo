@@ -67,8 +67,8 @@ public class KafkaConfig {
 
     public Map<String, Object> consumerConfigs() {
         Map<String, Object> consumerProps = new HashMap<>(properties);
-        consumerProps.putIfAbsent(ConsumerConfig.CLIENT_ID_CONFIG, buildConsumerClientId());
         consumerProps.putAll(consumer);
+        consumerProps.put(ConsumerConfig.CLIENT_ID_CONFIG, buildConsumerClientId((String) consumerProps.getOrDefault(ConsumerConfig.CLIENT_ID_CONFIG, appName + "-consumer")));
         consumerProps.putIfAbsent(ErrorWrapperDeserializer.KEY_WRAPPER_DESERIALIZER_CLASS, consumerProps.getOrDefault(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName()));
         consumerProps.putIfAbsent(ErrorWrapperDeserializer.VALUE_WRAPPER_DESERIALIZER_CLASS, consumerProps.getOrDefault(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getCanonicalName()));
 
@@ -84,9 +84,8 @@ public class KafkaConfig {
         return streamsProps;
     }
 
-    public String buildConsumerClientId() {
-        String consumerClientIdPrefix = appName + "-consumer";
-        return nbConsumerThreads == 1 ? consumerClientIdPrefix : consumerClientIdPrefix + "-" + nbConsumerCreated++;
+    public String buildConsumerClientId(String clientId) {
+        return nbConsumerThreads == 1 ? clientId : clientId + "-" + nbConsumerCreated++;
     }
 
 
