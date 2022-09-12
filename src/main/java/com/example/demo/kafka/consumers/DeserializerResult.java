@@ -1,4 +1,4 @@
-package com.example.demo.kafka;
+package com.example.demo.kafka.consumers;
 
 /**
  * Either returns the deserialized message or flag the message as invalid

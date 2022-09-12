@@ -1,6 +1,6 @@
 package com.example.demo.kafka.streams;
 
-import com.example.demo.config.ErrorHandler;
+import com.example.demo.kafka.consumers.ErrorHandler;
 import com.example.demo.config.KafkaConfig;
 import com.example.demo.kafka.DlqUtils;
 import com.example.demo.kafka.ErrorType;

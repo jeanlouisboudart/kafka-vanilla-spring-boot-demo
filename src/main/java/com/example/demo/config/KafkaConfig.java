@@ -1,6 +1,7 @@
 package com.example.demo.config;
 
-import com.example.demo.kafka.ErrorWrapperDeserializer;
+import com.example.demo.kafka.consumers.ErrorHandler;
+import com.example.demo.kafka.consumers.ErrorWrapperDeserializer;
 import com.example.demo.kafka.streams.KStreamDeserializationHandler;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,5 +1,6 @@
-package com.example.demo.kafka;
+package com.example.demo.kafka.consumers;
 
+import com.example.demo.kafka.*;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.MockProducer;

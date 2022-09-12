@@ -1,4 +1,4 @@
-package com.example.demo.kafka;
+package com.example.demo.kafka.consumers;
 
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.utils.Utils;

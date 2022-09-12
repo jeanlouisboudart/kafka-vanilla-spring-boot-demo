@@ -1,8 +1,8 @@
 package com.example.demo.services;
 
-import com.example.demo.kafka.AbstractKafkaReader;
-import com.example.demo.kafka.DeserializerResult;
-import com.example.demo.kafka.KafkaExceptionHandler;
+import com.example.demo.kafka.consumers.AbstractKafkaReader;
+import com.example.demo.kafka.consumers.DeserializerResult;
+import com.example.demo.kafka.consumers.KafkaExceptionHandler;
 import io.confluent.examples.clients.basicavro.Payment;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;

@@ -1,6 +1,6 @@
 package com.example.demo.services;
 
-import com.example.demo.config.ErrorHandler;
+import com.example.demo.kafka.consumers.ErrorHandler;
 import com.example.demo.config.KafkaConfig;
 import com.example.demo.kafka.streams.KStreamDeserializationHandler;
 import io.confluent.examples.clients.basicavro.Payment;

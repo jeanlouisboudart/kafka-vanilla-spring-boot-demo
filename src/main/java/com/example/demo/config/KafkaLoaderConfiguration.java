@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.kafka.*;
+import com.example.demo.kafka.consumers.*;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaClientMetrics;
 import lombok.AllArgsConstructor;

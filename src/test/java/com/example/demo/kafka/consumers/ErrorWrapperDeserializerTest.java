@@ -1,4 +1,4 @@
-package com.example.demo.kafka;
+package com.example.demo.kafka.consumers;
 
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;

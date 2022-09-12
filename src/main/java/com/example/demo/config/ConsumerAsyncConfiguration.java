@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.kafka.KafkaReader;
+import com.example.demo.kafka.consumers.KafkaReader;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

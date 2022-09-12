@@ -1,4 +1,4 @@
-package com.example.demo.kafka;
+package com.example.demo.kafka.consumers;
 
 import lombok.Setter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

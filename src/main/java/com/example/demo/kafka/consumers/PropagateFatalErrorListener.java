@@ -1,5 +1,6 @@
-package com.example.demo.kafka;
+package com.example.demo.kafka.consumers;
 
+import com.example.demo.kafka.ErrorType;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public class PropagateFatalErrorListener<K, V> implements OnFatalErrorListener<K, V> {
