@@ -1,12 +1,14 @@
 package com.example.demo.config;
 
 import com.example.demo.kafka.ErrorWrapperDeserializer;
+import com.example.demo.kafka.streams.KStreamDeserializationHandler;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +20,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaConfig {
 
-    private static final String DLQ_SUFFIX = "-dlq";
+    public static final String DLQ_SUFFIX = "-dlq";
     @Setter
     private Map<String, String> properties;
 
@@ -80,6 +82,7 @@ public class KafkaConfig {
 
     public Map<String, Object> streamsConfig() {
         Map<String, Object> streamsProps = new HashMap<>(properties);
+        streamsProps.putIfAbsent(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, KStreamDeserializationHandler.class);
         streamsProps.putAll(streams);
         return streamsProps;
     }

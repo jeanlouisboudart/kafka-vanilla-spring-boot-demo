@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.config.KafkaConfig;
+import com.example.demo.kafka.streams.BaseKafkaStreamsApp;
 import io.confluent.examples.clients.basicavro.Payment;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.common.serialization.Serde;
@@ -41,6 +42,13 @@ public class PaymentAnalytic extends BaseKafkaStreamsApp {
         builder
                 .stream(PaymentPublisher.TOPIC_NAME, Consumed.with(stringSerde, paymentSerde))
                 .peek((k, v) -> logger.debug("Observed event: key={} value={}", k, v))
+                .mapValues(value -> {
+                    //simulate a processing error
+                    if ("BOOM".equals(value.getId().toString())) {
+                        throw new RuntimeException("Should raise uncaught exception");
+                    }
+                    return value;
+                })
                 .groupByKey()
                 .windowedBy(TimeWindows.ofSizeWithNoGrace(windowSize))
                 .count()
