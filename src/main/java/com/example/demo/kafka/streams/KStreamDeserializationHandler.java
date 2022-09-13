@@ -94,7 +94,7 @@ public class KStreamDeserializationHandler implements DeserializationExceptionHa
             applicationId = (String) configs.get(StreamsConfig.APPLICATION_ID_CONFIG);
             dlqConfig.put(ProducerConfig.CLIENT_ID_CONFIG, applicationId + KafkaConfig.DLQ_SUFFIX);
             dlqProducer = new KafkaProducer<>(dlqConfig);
-
+            Runtime.getRuntime().addShutdownHook(new Thread(dlqProducer::close));
             dlqTopicName = (String) dlqConfig.getOrDefault(DLQ_TOPIC_NAME_CONFIG, applicationId + KafkaConfig.DLQ_SUFFIX);
 
         }
