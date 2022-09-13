@@ -42,10 +42,7 @@ public abstract class BaseKafkaStreamsApp {
         KafkaStreams kafkaStreams = new KafkaStreams(topology, new StreamsConfig(kafkaConfig.streamsConfig()));
         new KafkaStreamsMetrics(kafkaStreams).bindTo(meterRegistry);
         //Shutdown application if there are any error
-        kafkaStreams.setUncaughtExceptionHandler(exception -> {
-            logger.error("Uncaught exception occurred in Kafka Streams. Application will shutdown !", exception);
-            return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
-        });
+        kafkaStreams.setUncaughtExceptionHandler(this::uncaughtExceptionHandler);
         kafkaStreams.setStateListener(((newState, oldState) -> {
             if (newState == KafkaStreams.State.PENDING_ERROR) {
                 //Stop the app in case of error
@@ -54,6 +51,11 @@ public abstract class BaseKafkaStreamsApp {
         }));
         kafkaStreams.start();
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
+    }
+
+    protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse uncaughtExceptionHandler(Throwable exception) {
+            logger.error("Uncaught exception occurred in Kafka Streams. Application will shutdown !", exception);
+            return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
     }
 
     public abstract Topology buildTopology();
