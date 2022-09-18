@@ -14,6 +14,7 @@ import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.kstream.WindowedSerdes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -25,8 +26,8 @@ public class PaymentAnalytic extends BaseKafkaStreamsApp {
 
     private final Logger logger = LoggerFactory.getLogger(PaymentAnalytic.class);
 
-    public PaymentAnalytic(KafkaConfig kafkaConfig, MeterRegistry meterRegistry) {
-        super(kafkaConfig, meterRegistry);
+    public PaymentAnalytic(KafkaConfig kafkaConfig, MeterRegistry meterRegistry, ConfigurableApplicationContext applicationContext) {
+        super(kafkaConfig, meterRegistry,applicationContext);
     }
 
     @PostConstruct

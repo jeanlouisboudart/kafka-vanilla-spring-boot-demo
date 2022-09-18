@@ -1,7 +1,7 @@
 package com.example.demo.services;
 
-import com.example.demo.kafka.consumers.ErrorHandler;
 import com.example.demo.config.KafkaConfig;
+import com.example.demo.kafka.consumers.ErrorHandler;
 import com.example.demo.kafka.streams.KStreamDeserializationHandler;
 import io.confluent.examples.clients.basicavro.Payment;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.time.Duration;
 import java.util.*;
@@ -33,6 +34,8 @@ public class PaymentAnalyticTest {
 
     @Mock
     private MeterRegistry meterRegistry;
+    @Mock
+    private ConfigurableApplicationContext applicationContext;
 
     private final KafkaConfig kafkaConfig = new KafkaConfig();
 
@@ -50,7 +53,7 @@ public class PaymentAnalyticTest {
         kafkaConfig.setProperties(new HashMap<>());
         kafkaConfig.setStreams(mockProps);
 
-        PaymentAnalytic paymentAnalytic = new PaymentAnalytic(kafkaConfig, meterRegistry);
+        PaymentAnalytic paymentAnalytic = new PaymentAnalytic(kafkaConfig, meterRegistry, applicationContext);
         Properties streamsProperties = new Properties();
         streamsProperties.putAll(kafkaConfig.streamsConfig());
         topologyTestDriver = new TopologyTestDriver(paymentAnalytic.buildTopology(), streamsProperties);
@@ -102,7 +105,7 @@ public class PaymentAnalyticTest {
         kafkaConfig.setProperties(new HashMap<>());
         kafkaConfig.setStreams(mockProps);
 
-        PaymentAnalytic paymentAnalytic = new PaymentAnalytic(kafkaConfig, meterRegistry);
+        PaymentAnalytic paymentAnalytic = new PaymentAnalytic(kafkaConfig, meterRegistry, applicationContext);
         Properties streamsProperties = new Properties();
         streamsProperties.putAll(kafkaConfig.streamsConfig());
         topologyTestDriver = new TopologyTestDriver(paymentAnalytic.buildTopology(), streamsProperties);

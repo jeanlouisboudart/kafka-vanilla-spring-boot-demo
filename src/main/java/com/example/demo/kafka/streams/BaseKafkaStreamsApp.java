@@ -12,16 +12,20 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 public abstract class BaseKafkaStreamsApp {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseKafkaStreamsApp.class);
     private final KafkaConfig kafkaConfig;
     private final MeterRegistry meterRegistry;
+    private final ConfigurableApplicationContext applicationContext;
 
-    public BaseKafkaStreamsApp(KafkaConfig kafkaConfig, MeterRegistry meterRegistry) {
+    public BaseKafkaStreamsApp(KafkaConfig kafkaConfig, MeterRegistry meterRegistry, ConfigurableApplicationContext applicationContext) {
         this.kafkaConfig = kafkaConfig;
         this.meterRegistry = meterRegistry;
+        this.applicationContext = applicationContext;
     }
 
     public <T extends SpecificRecord> Serde<T> specificAvroSerdeKey() {
@@ -46,7 +50,9 @@ public abstract class BaseKafkaStreamsApp {
         kafkaStreams.setStateListener(((newState, oldState) -> {
             if (newState == KafkaStreams.State.PENDING_ERROR) {
                 //Stop the app in case of error
-                System.exit(1);
+                if (applicationContext.isActive()) {
+                    SpringApplication.exit(applicationContext, () -> 1);
+                }
             }
         }));
         kafkaStreams.start();
