@@ -115,9 +115,8 @@
 							<goal>schema</goal>
 						</goals>
 						<configuration>
-							<sourceDirectory>${project.basedir}/src/main/resources/avro/com/example/demo/</sourceDirectory>
 							<includes>
-								<include>Payment.avsc</include>
+								<include>*.avsc</include>
 							</includes>
 							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 						</configuration>
