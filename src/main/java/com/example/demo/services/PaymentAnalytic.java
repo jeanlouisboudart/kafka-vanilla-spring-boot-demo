@@ -4,6 +4,7 @@ import com.example.demo.config.KafkaConfig;
 import com.example.demo.kafka.streams.BaseKafkaStreamsApp;
 import io.confluent.examples.clients.basicavro.Payment;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
 
 @Service

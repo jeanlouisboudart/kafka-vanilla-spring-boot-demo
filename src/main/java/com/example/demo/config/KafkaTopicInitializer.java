@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import com.example.demo.services.PaymentPublisher;
 import com.google.common.collect.Lists;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
@@ -12,14 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @Configuration
-@ConfigurationProperties(prefix = "topics-initializer")
 @AllArgsConstructor
 public class KafkaTopicInitializer {
 

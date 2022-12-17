@@ -2,6 +2,7 @@ package com.example.demo.services;
 
 import com.example.demo.models.PaymentDTO;
 import io.confluent.examples.clients.basicavro.Payment;
+import jakarta.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -10,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
 
 @Service
 @AllArgsConstructor
