@@ -15,7 +15,7 @@
 	<description>Demo of Kafka vanilla client with Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
-		<kafka.version>3.5.0</kafka.version>
+		<kafka.version>3.5.1</kafka.version>
 		<schema-registry.version>7.4.1</schema-registry.version>
 		<avro.version>1.11.2</avro.version>
 	</properties>
