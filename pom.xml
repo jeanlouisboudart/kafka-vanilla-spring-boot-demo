@@ -16,7 +16,7 @@
 	<properties>
 		<java.version>11</java.version>
 		<kafka.version>3.7.0</kafka.version>
-		<schema-registry.version>7.5.0</schema-registry.version>
+		<schema-registry.version>7.6.0</schema-registry.version>
 		<avro.version>1.11.3</avro.version>
 	</properties>
 	<dependencies>
